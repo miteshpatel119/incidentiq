@@ -7,8 +7,8 @@
   "rewrites": [{ "source": "/((?!api/.*).*)", "destination": "/index.html" }],
   "functions": {
     "api/**/*.ts": {
-      "memory": 1024,
-      "maxDuration": 10
+      "memory": 2048,
+      "maxDuration": 60
     }
   },
   "headers": [
