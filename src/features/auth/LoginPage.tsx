@@ -112,7 +112,7 @@ export function LoginPage(): JSX.Element {
             </label>
             {error !== null ? (
               <p
-                className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-red-300"
+                className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-red-700 dark:text-red-300"
                 role="alert"
               >
                 {error}

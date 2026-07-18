@@ -10,8 +10,6 @@ export function showToast(message: string, type: ToastData['type'] = 'info'): vo
   addToastFn?.({ id: `${Date.now()}-${Math.random()}`, message, type })
 }
 
-export function setAddToastHandler(
-  handler: ((toast: ToastData) => void) | null,
-): void {
+export function setAddToastHandler(handler: ((toast: ToastData) => void) | null): void {
   addToastFn = handler
 }

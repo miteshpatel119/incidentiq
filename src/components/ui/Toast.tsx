@@ -28,9 +28,9 @@ export function ToastContainer(): JSX.Element {
         <div
           className={cn(
             'flex items-start gap-3 rounded-lg border px-4 py-3 shadow-lg backdrop-blur-sm',
-            'animate-in slide-in-from-right-full fade-in duration-300',
+            'duration-300 animate-in fade-in slide-in-from-right-full',
             toast.type === 'incident'
-              ? 'border-rose-500/30 bg-rose-500/10 text-rose-200'
+              ? 'border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-200'
               : toast.type === 'error'
                 ? 'border-destructive/30 bg-destructive/10 text-destructive-foreground'
                 : 'border-border bg-card text-foreground',

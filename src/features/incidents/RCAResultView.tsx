@@ -34,12 +34,26 @@ interface RCAResultViewProps {
 }
 
 function ConfidenceMeter({ score }: { readonly score: number }): JSX.Element {
-  const color = score >= 80 ? 'text-emerald-400' : score >= 60 ? 'text-amber-400' : 'text-rose-400'
+  const color =
+    score >= 80
+      ? 'text-emerald-600 dark:text-emerald-400'
+      : score >= 60
+        ? 'text-amber-600 dark:text-amber-400'
+        : 'text-rose-600 dark:text-rose-400'
 
   const bgColor =
-    score >= 80 ? 'bg-emerald-500/20' : score >= 60 ? 'bg-amber-500/20' : 'bg-rose-500/20'
+    score >= 80
+      ? 'bg-emerald-500/15 dark:bg-emerald-500/25'
+      : score >= 60
+        ? 'bg-amber-500/15 dark:bg-amber-500/25'
+        : 'bg-rose-500/15 dark:bg-rose-500/25'
 
-  const barColor = score >= 80 ? 'bg-emerald-400' : score >= 60 ? 'bg-amber-400' : 'bg-rose-400'
+  const barColor =
+    score >= 80
+      ? 'bg-emerald-500 dark:bg-emerald-400'
+      : score >= 60
+        ? 'bg-amber-500 dark:bg-amber-400'
+        : 'bg-rose-500 dark:bg-rose-400'
 
   return (
     <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
@@ -80,10 +94,10 @@ function EvidenceCard({ evidence }: { readonly evidence: readonly EvidenceItem[]
                 className={cn(
                   'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium uppercase',
                   item.severity === 'critical'
-                    ? 'bg-rose-500/15 text-rose-300'
+                    ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300'
                     : item.severity === 'supporting'
-                      ? 'bg-amber-500/15 text-amber-300'
-                      : 'bg-slate-500/15 text-slate-300',
+                      ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300'
+                      : 'bg-slate-500/15 text-slate-700 dark:text-slate-300',
                 )}
               >
                 {item.severity}
@@ -126,10 +140,10 @@ function TimelineCard({ timeline }: { readonly timeline: readonly TimelineEvent[
   }
 
   const typeIcons: Record<string, React.ReactNode> = {
-    error: <AlertTriangle className="h-3.5 w-3.5 text-rose-400" />,
-    warning: <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />,
+    error: <AlertTriangle className="h-3.5 w-3.5 text-rose-500 dark:text-rose-400" />,
+    warning: <AlertTriangle className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" />,
     info: <Clock className="h-3.5 w-3.5 text-primary" />,
-    change: <GitCommit className="h-3.5 w-3.5 text-emerald-400" />,
+    change: <GitCommit className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400" />,
   }
 
   return (
@@ -355,11 +369,13 @@ ${result.postIncidentReport}
     <div className="space-y-6" ref={reportRef}>
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
+        <div className="min-w-0 flex-1">
           <p className="text-xs font-medium uppercase tracking-wider text-primary">
             Root cause analysis
           </p>
-          <h2 className="mt-1 text-xl font-semibold tracking-tight">{result.rootCause}</h2>
+          <h2 className="mt-1 text-xl font-semibold tracking-tight break-words">
+            {result.rootCause}
+          </h2>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{result.summary}</p>
         </div>
         <div className="flex shrink-0 gap-2">

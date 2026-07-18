@@ -120,7 +120,9 @@ export function IncidentTable({ incidents }: IncidentTableProps): JSX.Element {
                     <td className="px-5 py-4">
                       <StatusBadge kind="status" value={incident.status} />
                     </td>
-                    <td className="px-5 py-4 text-muted-foreground">{relativeTime(incident.createdAt)}</td>
+                    <td className="px-5 py-4 text-muted-foreground">
+                      {relativeTime(incident.createdAt)}
+                    </td>
                     <td className="px-5 py-4">
                       <ChevronRight className="h-4 w-4 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-foreground" />
                     </td>
@@ -152,7 +154,9 @@ export function IncidentTable({ incidents }: IncidentTableProps): JSX.Element {
                 </div>
                 <div className="mt-4 flex items-center justify-between">
                   <StatusBadge kind="status" value={incident.status} />
-                  <span className="text-xs text-muted-foreground">{relativeTime(incident.createdAt)}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {relativeTime(incident.createdAt)}
+                  </span>
                 </div>
               </article>
             ))}

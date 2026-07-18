@@ -13,7 +13,7 @@ export function MonitoringConnection(): JSX.Element {
           className={
             isConnecting
               ? 'rounded-full bg-primary/10 p-2 text-primary'
-              : 'rounded-full bg-emerald-500/10 p-2 text-emerald-400'
+              : 'rounded-full bg-emerald-500/10 p-2 text-emerald-600 dark:text-emerald-400'
           }
         >
           {isConnecting ? (
@@ -34,7 +34,11 @@ export function MonitoringConnection(): JSX.Element {
         </div>
       </div>
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <Radio className={isConnecting ? 'h-3.5 w-3.5' : 'h-3.5 w-3.5 text-emerald-400'} />
+        <Radio
+          className={
+            isConnecting ? 'h-3.5 w-3.5' : 'h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400'
+          }
+        />
         {latestScenario === null ? 'Awaiting signals' : `Latest signal: ${latestScenario.source}`}
       </div>
     </section>

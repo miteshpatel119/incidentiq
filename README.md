@@ -46,15 +46,15 @@
 
 ### Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| **Frontend** | React 18, TypeScript (strict mode), Vite 6 |
-| **Styling** | Tailwind CSS 3, shadcn/ui components, lucide-react icons |
-| **Routing** | React Router v7 |
-| **Serverless API** | Vercel Functions (@vercel/node) |
-| **LLM Provider** | OpenRouter API (OpenAI, Claude, Gemini, etc.) |
-| **Package Manager** | npm |
-| **Linting/Formatting** | ESLint 9, Prettier 3 |
+| Layer                  | Technology                                               |
+| ---------------------- | -------------------------------------------------------- |
+| **Frontend**           | React 18, TypeScript (strict mode), Vite 6               |
+| **Styling**            | Tailwind CSS 3, shadcn/ui components, lucide-react icons |
+| **Routing**            | React Router v7                                          |
+| **Serverless API**     | Vercel Functions (@vercel/node)                          |
+| **LLM Provider**       | OpenRouter API (OpenAI, Claude, Gemini, etc.)            |
+| **Package Manager**    | npm                                                      |
+| **Linting/Formatting** | ESLint 9, Prettier 3                                     |
 
 ## Getting Started
 
@@ -94,17 +94,17 @@ The app will be available at **http://localhost:5173**.
 
 ### Development Commands
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start Vite dev server (frontend only) |
-| `npm run dev:full` | Start Vite + API server locally |
-| `npm run build` | Type-check and build for production |
-| `npm run preview` | Preview production build locally |
-| `npm run lint` | Run ESLint (zero warnings required) |
-| `npm run lint:fix` | Auto-fix lint issues |
-| `npm run format` | Format code with Prettier |
-| `npm run typecheck` | TypeScript type checking |
-| `npm run check` | Format check + lint + typecheck |
+| Command             | Description                           |
+| ------------------- | ------------------------------------- |
+| `npm run dev`       | Start Vite dev server (frontend only) |
+| `npm run dev:full`  | Start Vite + API server locally       |
+| `npm run build`     | Type-check and build for production   |
+| `npm run preview`   | Preview production build locally      |
+| `npm run lint`      | Run ESLint (zero warnings required)   |
+| `npm run lint:fix`  | Auto-fix lint issues                  |
+| `npm run format`    | Format code with Prettier             |
+| `npm run typecheck` | TypeScript type checking              |
+| `npm run check`     | Format check + lint + typecheck       |
 
 ## Deployment
 
@@ -113,6 +113,7 @@ The app will be available at **http://localhost:5173**.
 The easiest way to deploy IncidentIQ is on **Vercel's free tier**:
 
 1. **Push to GitHub**:
+
    ```bash
    git add .
    git commit -m "Initial commit"
@@ -138,11 +139,11 @@ Your app will be live at `https://incidentiq.vercel.app` (custom domain supporte
 
 ### Environment Variables
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `OPENROUTER_API_KEY` | ✅ Yes | API key for AI-powered RCA via OpenRouter |
-| `NODE_ENV` | ❌ No | Set to `production` on Vercel (auto) |
-| `PUBLIC_URL` | ❌ No | Application URL for redirects |
+| Variable             | Required | Description                               |
+| -------------------- | -------- | ----------------------------------------- |
+| `OPENROUTER_API_KEY` | ✅ Yes   | API key for AI-powered RCA via OpenRouter |
+| `NODE_ENV`           | ❌ No    | Set to `production` on Vercel (auto)      |
+| `PUBLIC_URL`         | ❌ No    | Application URL for redirects             |
 
 > **⚠️ Security:** Never commit your real `OPENROUTER_API_KEY` to version control. Always use Vercel's Environment Variables dashboard for production secrets.
 
@@ -234,13 +235,13 @@ The investigation result includes:
 
 ## Free Tier Constraints
 
-| Resource | Free Tier Limit | IncidentIQ Usage |
-|----------|----------------|------------------|
-| Vercel Functions | 100 GB-hours / month | ~1 MB per invocation |
+| Resource                 | Free Tier Limit       | IncidentIQ Usage           |
+| ------------------------ | --------------------- | -------------------------- |
+| Vercel Functions         | 100 GB-hours / month  | ~1 MB per invocation       |
 | Vercel Function Duration | 60s (Pro), 10s (Free) | Configured for 10s default |
-| Vercel Bandwidth | 100 GB / month | Minimal (JSON API) |
-| OpenRouter | Free tier available | ~1–2 cents / analysis |
-| GitHub Actions | 2,000 min / month | ~2 min per CI run |
+| Vercel Bandwidth         | 100 GB / month        | Minimal (JSON API)         |
+| OpenRouter               | Free tier available   | ~1–2 cents / analysis      |
+| GitHub Actions           | 2,000 min / month     | ~2 min per CI run          |
 
 > **Note:** The API function is configured with `maxDuration: 10` by default (matching Vercel's free tier). If you upgrade to Pro, you can increase this to 60s for more complex analyses.
 

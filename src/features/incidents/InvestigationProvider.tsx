@@ -107,20 +107,18 @@ interface InvestigationContextValue {
 const InvestigationContext = createContext<InvestigationContextValue | null>(null)
 
 export function InvestigationProvider({ children }: { readonly children: ReactNode }): JSX.Element {
-  const [investigations, setInvestigations] = useState<ReadonlyMap<string, Investigation>>(
-    () => {
-      try {
-        const raw = localStorage.getItem(INVESTIGATIONS_STORAGE_KEY)
-        if (raw !== null) {
-          const entries = JSON.parse(raw) as Array<[string, Investigation]>
-          return new Map(entries)
-        }
-      } catch {
-        // ignore parse errors
+  const [investigations, setInvestigations] = useState<ReadonlyMap<string, Investigation>>(() => {
+    try {
+      const raw = localStorage.getItem(INVESTIGATIONS_STORAGE_KEY)
+      if (raw !== null) {
+        const entries = JSON.parse(raw) as Array<[string, Investigation]>
+        return new Map(entries)
       }
-      return new Map()
-    },
-  )
+    } catch {
+      // ignore parse errors
+    }
+    return new Map()
+  })
   const abortRef = useRef<AbortController | null>(null)
 
   const advanceStep = useCallback((incidentId: string, stepIndex: number): void => {

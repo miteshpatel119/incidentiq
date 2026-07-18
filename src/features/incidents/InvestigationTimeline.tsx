@@ -11,7 +11,7 @@ interface InvestigationTimelineProps {
 const statusIcon: Record<string, ReactNode> = {
   pending: <Circle className="h-4 w-4 text-muted-foreground/40" />,
   'in-progress': <LoaderCircle className="h-4 w-4 animate-spin text-primary" />,
-  completed: <CheckCircle2 className="h-4 w-4 text-emerald-400" />,
+  completed: <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />,
   failed: <XCircle className="h-4 w-4 text-destructive" />,
 }
 

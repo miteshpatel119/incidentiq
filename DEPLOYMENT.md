@@ -50,10 +50,10 @@ git push -u origin main
 
 Click **"Environment Variables"** and add:
 
-| Name | Value | Scope |
-|------|-------|-------|
+| Name                 | Value                     | Scope                            |
+| -------------------- | ------------------------- | -------------------------------- |
 | `OPENROUTER_API_KEY` | `sk-or-v1-...` (your key) | Production, Preview, Development |
-| `NODE_ENV` | `production` | Production only |
+| `NODE_ENV`           | `production`              | Production only                  |
 
 ### Step 4: Deploy
 
@@ -108,20 +108,22 @@ vercel --prod
 
 ## Environment Variables
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `OPENROUTER_API_KEY` | ✅ Yes | — | API key for AI-powered RCA via OpenRouter |
-| `NODE_ENV` | ❌ No | `development` | Set to `production` on Vercel (auto-set in dashboard) |
-| `PUBLIC_URL` | ❌ No | `http://localhost:5173` | Public URL of the app (used for redirects) |
+| Variable             | Required | Default                 | Description                                           |
+| -------------------- | -------- | ----------------------- | ----------------------------------------------------- |
+| `OPENROUTER_API_KEY` | ✅ Yes   | —                       | API key for AI-powered RCA via OpenRouter             |
+| `NODE_ENV`           | ❌ No    | `development`           | Set to `production` on Vercel (auto-set in dashboard) |
+| `PUBLIC_URL`         | ❌ No    | `http://localhost:5173` | Public URL of the app (used for redirects)            |
 
 ### Setting Environment Variables on Vercel
 
 **Dashboard**:
+
 1. Go to your project → **Settings** → **Environment Variables**
 2. Add each variable
 3. Choose scope: Production, Preview, Development
 
 **CLI**:
+
 ```bash
 vercel env add OPENROUTER_API_KEY
 # Prompts: Production, Preview, Development (select all)
@@ -212,24 +214,24 @@ curl https://incidentiq.vercel.app/api/health
 
 ## Troubleshooting
 
-| Problem | Solution |
-|---------|----------|
-| **Build fails with TypeScript errors** | Run `npm run typecheck` locally and fix errors |
-| **API returns 500 "OPENROUTER_API_KEY is not configured"** | Verify environment variable is set in Vercel dashboard |
-| **API returns 504 Gateway Timeout** | The LLM analysis may take >10s. Upgrade to Vercel Pro for 60s timeout |
-| **Blank page after deploy** | Check browser console for errors. Ensure `dist/` is set as output directory |
-| **CSS not loading / broken layout** | Verify Tailwind config is valid. Run `npm run build` locally to test |
-| **Login doesn't work** | Use credentials: `admin` / `admin` (mock auth) |
+| Problem                                                    | Solution                                                                    |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------- |
+| **Build fails with TypeScript errors**                     | Run `npm run typecheck` locally and fix errors                              |
+| **API returns 500 "OPENROUTER_API_KEY is not configured"** | Verify environment variable is set in Vercel dashboard                      |
+| **API returns 504 Gateway Timeout**                        | The LLM analysis may take >10s. Upgrade to Vercel Pro for 60s timeout       |
+| **Blank page after deploy**                                | Check browser console for errors. Ensure `dist/` is set as output directory |
+| **CSS not loading / broken layout**                        | Verify Tailwind config is valid. Run `npm run build` locally to test        |
+| **Login doesn't work**                                     | Use credentials: `admin` / `admin` (mock auth)                              |
 
 ### Vercel Free Tier Limits
 
-| Resource | Limit | Notes |
-|----------|-------|-------|
-| Serverless Functions | 100 GB-hours/month | IncidentIQ uses minimal compute |
-| Function Duration | 10s (max) | AI analysis may be slower — upgrade to Pro |
-| Bandwidth | 100 GB/month | Well within typical usage |
-| Build Minutes | 6,000 min/month | CI + deployments |
-| Team Members | Unlimited | Free for personal accounts |
+| Resource             | Limit              | Notes                                      |
+| -------------------- | ------------------ | ------------------------------------------ |
+| Serverless Functions | 100 GB-hours/month | IncidentIQ uses minimal compute            |
+| Function Duration    | 10s (max)          | AI analysis may be slower — upgrade to Pro |
+| Bandwidth            | 100 GB/month       | Well within typical usage                  |
+| Build Minutes        | 6,000 min/month    | CI + deployments                           |
+| Team Members         | Unlimited          | Free for personal accounts                 |
 
 ---
 

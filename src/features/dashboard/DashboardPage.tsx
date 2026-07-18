@@ -41,28 +41,28 @@ export function DashboardPage(): JSX.Element {
       value: String(openIncidents.length),
       note: `${criticalIncidents.length} critical signal${criticalIncidents.length === 1 ? '' : 's'} detected`,
       icon: AlertTriangle,
-      tone: 'text-orange-300 bg-orange-500/10',
+      tone: 'text-orange-600 dark:text-orange-300 bg-orange-500/10',
     },
     {
       label: 'Critical impact',
       value: String(criticalIncidents.length),
       note: criticalIncidents[0]?.service ?? 'No critical services',
       icon: Activity,
-      tone: 'text-rose-300 bg-rose-500/10',
+      tone: 'text-rose-600 dark:text-rose-300 bg-rose-500/10',
     },
     {
       label: 'Mean time to resolve',
       value: '42m',
       note: '18% faster this week',
       icon: Clock3,
-      tone: 'text-sky-300 bg-sky-500/10',
+      tone: 'text-sky-600 dark:text-sky-300 bg-sky-500/10',
     },
     {
       label: 'Resolved this week',
       value: '14',
       note: '93% within target',
       icon: CheckCircle2,
-      tone: 'text-emerald-300 bg-emerald-500/10',
+      tone: 'text-emerald-600 dark:text-emerald-300 bg-emerald-500/10',
     },
   ] as const
   return (
@@ -71,10 +71,10 @@ export function DashboardPage(): JSX.Element {
         <div>
           <p className="text-sm font-medium text-primary">INCIDENT COMMAND CENTER</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
-            Greetings of the day, Namaste Judges.
+            Incident overview
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Here is the current reliability picture across your services.
+            Real-time reliability picture across your services.
           </p>
         </div>
         <Button onClick={() => setIsModalOpen(true)}>
