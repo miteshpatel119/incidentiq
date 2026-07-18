@@ -192,7 +192,7 @@ export function InvestigationProvider({ children }: { readonly children: ReactNo
       try {
         const scenario = mockScenarios.find((s) => s.key === incident.scenarioKey)
         // Try to get enterprise data, or create fallback for manual incidents
-        let enterpriseData = getEnterpriseIncidentProfile(incident.scenarioKey)
+        let enterpriseData = getEnterpriseIncidentProfile(incident.scenarioKey, incident.createdAt)
         const isManualIncident = incident.scenarioKey.startsWith('manual-')
 
         if (enterpriseData === undefined) {
