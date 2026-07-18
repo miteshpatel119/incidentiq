@@ -219,39 +219,20 @@ export function InvestigationProvider({ children }: { readonly children: ReactNo
           }
         }
 
-        const sanitizeString = (value: string): string => {
-          return value
-            .replace(/\\/g, '\\\\')
-            .replace(/"/g, '\\"')
-            .replace(/\n/g, '\\n')
-            .replace(/\r/g, '\\r')
-            .replace(/\t/g, '\\t')
-        }
-
-        const safeStringify = (obj: unknown): string => {
-          try {
-            const json = JSON.stringify(obj)
-            if (typeof json === 'string') return json
-            return '{}'
-          } catch {
-            return '{}'
-          }
-        }
-
         const payload = {
-          incidentId: sanitizeString(incident.id),
-          scenarioKey: sanitizeString(incident.scenarioKey),
-          service: sanitizeString(incident.service),
-          severity: sanitizeString(incident.severity),
-          summary: sanitizeString(incident.summary),
-          signal: sanitizeString(scenario?.signal ?? ''),
+          incidentId: incident.id,
+          scenarioKey: incident.scenarioKey,
+          service: incident.service,
+          severity: incident.severity,
+          summary: incident.summary,
+          signal: scenario?.signal ?? '',
           enterpriseData,
         }
 
         let response: Response | null = null
         let apiAvailable = false
         try {
-          const requestBody = safeStringify(payload)
+          const requestBody = JSON.stringify(payload)
           response = await fetch(`${API_BASE}/analyze`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
