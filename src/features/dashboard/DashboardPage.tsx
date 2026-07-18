@@ -71,7 +71,7 @@ export function DashboardPage(): JSX.Element {
         <div>
           <p className="text-sm font-medium text-primary">INCIDENT COMMAND CENTER</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
-            Good morning, Alex.
+            Greetings of the day, Namaste Judges.
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Here is the current reliability picture across your services.

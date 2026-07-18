@@ -19,11 +19,11 @@ export function UserMenu(): JSX.Element {
         {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
       </Button>
       <div className="hidden px-2 text-right sm:block">
-        <p className="text-sm font-medium leading-4">Alex Morgan</p>
+        <p className="text-sm font-medium leading-4">Namaste Judges</p>
         <p className="text-xs text-muted-foreground">Admin</p>
       </div>
       <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
-        AM
+        NJ
       </span>
       <Button aria-label="Sign out" onClick={handleLogout} size="icon" variant="ghost">
         <LogOut className="h-4 w-4" />
