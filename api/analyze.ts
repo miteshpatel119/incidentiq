@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
-import { analyzeIncident, type RCAResult } from './lib/openrouterAnalysis'
+import { analyzeIncident, type RCAResult } from './lib/openrouterAnalysis.js'
 
 interface AnalyzeRequest {
   readonly incidentId: string
