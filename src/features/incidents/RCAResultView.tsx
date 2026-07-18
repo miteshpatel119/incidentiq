@@ -373,9 +373,7 @@ ${result.postIncidentReport}
           <p className="text-xs font-semibold uppercase tracking-wider text-primary">
             Root cause analysis
           </p>
-          <h2 className="text-md leading-7 tracking-tight break-words">
-            {result.rootCause}
-          </h2>
+          <h2 className="text-md break-words leading-7 tracking-tight">{result.rootCause}</h2>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{result.summary}</p>
         </div>
         <div className="flex shrink-0 gap-2">

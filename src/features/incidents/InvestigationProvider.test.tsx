@@ -47,7 +47,6 @@ vi.mock('@/lib/toast', () => ({
 
 // Test component that uses the investigation context
 function TestConsumer(): JSX.Element {
-   
   const { getInvestigation } = useInvestigation()
 
   // Get a non-existent investigation to test idle state
@@ -55,9 +54,7 @@ function TestConsumer(): JSX.Element {
 
   return (
     <div>
-      <span data-testid="investigation-status">
-        {investigation?.status ?? 'idle'}
-      </span>
+      <span data-testid="investigation-status">{investigation?.status ?? 'idle'}</span>
     </div>
   )
 }
@@ -119,15 +116,12 @@ describe('InvestigationProvider', () => {
       localStorage.setItem('incidentiq-investigations', JSON.stringify(existingInvestigation))
 
       function LoadedConsumer(): JSX.Element {
-         
         const { getInvestigation } = useInvestigation()
         const investigation = getInvestigation('INC-LOADED')
 
         return (
           <div>
-            <span data-testid="loaded-status">
-              {investigation?.status ?? 'none'}
-            </span>
+            <span data-testid="loaded-status">{investigation?.status ?? 'none'}</span>
             <span data-testid="loaded-root-cause">
               {investigation?.result?.rootCause ?? 'no-result'}
             </span>

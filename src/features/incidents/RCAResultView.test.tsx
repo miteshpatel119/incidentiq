@@ -46,7 +46,8 @@ describe('RCAResultView', () => {
       },
       {
         title: 'Similar historical incident: INC-982',
-        description: 'Order API pool saturation during promotion — resolved by: Reduced per-pod pool allocation',
+        description:
+          'Order API pool saturation during promotion — resolved by: Reduced per-pod pool allocation',
         source: 'Incident History',
         severity: 'contextual',
       },
@@ -99,8 +100,12 @@ describe('RCAResultView', () => {
         explanation: 'Revert DB_POOL_MAX from "80" back to "40"',
       },
     ],
-    recommendedCommands: ['kubectl get pods', 'kubectl logs -n default deployment/orders-api --tail=100'],
-    postIncidentReport: '## Post-Incident Report\n\n### What happened\nDatabase pool exhausted.\n\n### Root cause\nPool configuration issue.\n\n### Impact\nAffected customers.\n\n### Action items\n1. Apply fixes\n2. Verify',
+    recommendedCommands: [
+      'kubectl get pods',
+      'kubectl logs -n default deployment/orders-api --tail=100',
+    ],
+    postIncidentReport:
+      '## Post-Incident Report\n\n### What happened\nDatabase pool exhausted.\n\n### Root cause\nPool configuration issue.\n\n### Impact\nAffected customers.\n\n### Action items\n1. Apply fixes\n2. Verify',
   }
 
   beforeEach(() => {
@@ -147,10 +152,7 @@ describe('RCAResultView', () => {
 
     it('displays medium confidence with correct styling', () => {
       render(
-        <RCAResultView
-          result={{ ...mockResult, confidenceScore: 70 }}
-          incidentId="INC-TEST-001"
-        />,
+        <RCAResultView result={{ ...mockResult, confidenceScore: 70 }} incidentId="INC-TEST-001" />,
       )
 
       expect(screen.getByText('70%')).toBeInTheDocument()
@@ -158,10 +160,7 @@ describe('RCAResultView', () => {
 
     it('displays low confidence with correct styling', () => {
       render(
-        <RCAResultView
-          result={{ ...mockResult, confidenceScore: 45 }}
-          incidentId="INC-TEST-001"
-        />,
+        <RCAResultView result={{ ...mockResult, confidenceScore: 45 }} incidentId="INC-TEST-001" />,
       )
 
       expect(screen.getByText('45%')).toBeInTheDocument()

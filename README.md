@@ -2,7 +2,7 @@
 
 **IncidentIQ** is a production-quality SaaS application for real-time incident monitoring, AI-powered root cause analysis (RCA), and post-incident reporting. Built for Site Reliability Engineers (SREs), DevOps teams, and platform engineers who need to quickly identify, investigate, and resolve service incidents.
 
-![IncidentIQ Dashboard](https://via.placeholder.com/800x450?text=IncidentIQ+Dashboard)
+<a href="https://incidentiq-git-main-zarvis.vercel.app/dashboard" target="_blank">IncidentIQ Dashboard</a>
 
 ## Features
 
@@ -194,22 +194,20 @@ incidentiq/
 └── package.json            # Dependencies and scripts
 ```
 
-
 ## 🤖 AI-Assisted Development
 
 This project was developed with the assistance of multiple AI models during different phases of development. AI was used to help with prompt refinement, code generation, debugging, testing, documentation, and code quality improvements. All generated code was reviewed, tested, and integrated by the project author.
 
-| AI Tool | Model | Primary Usage |
-|---------|-------|---------------|
-| ChatGPT | GPT-5.5 | Generate concise implementation prompts and refine development tasks. |
-| Codex | GPT-5.5 Medium | Generate implementation code for prompts **#1–#5**. |
-| Cline | DeepSeek V4 Flash | Generate implementation code for prompts **#6–#7**. |
-| Cline | Stepfun 3.7 Flash | Resolve OpenAI API and Gemini API integration issues (Prompt **#8**). |
-| Cline | Stepfun 3.7 Flash | OpenRouter API integration, project setup, and code quality improvements (Prompts **#6–#8**). |
-| Cline | Laguna M.1 | Code quality improvements, test case generation, UI/design refinements, and GitHub/Vercel deployment issue fixes (Prompts **#9–#10**). |
+| AI Tool | Model             | Primary Usage                                                                                                                          |
+| ------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| ChatGPT | GPT-5.5           | Generate concise implementation prompts and refine development tasks.                                                                  |
+| Codex   | GPT-5.5 Medium    | Generate implementation code for prompts **#1–#5**.                                                                                    |
+| Cline   | DeepSeek V4 Flash | Generate implementation code for prompts **#6–#7**.                                                                                    |
+| Cline   | Stepfun 3.7 Flash | Resolve OpenAI API and Gemini API integration issues (Prompt **#8**).                                                                  |
+| Cline   | Stepfun 3.7 Flash | OpenRouter API integration, project setup, and code quality improvements (Prompts **#6–#8**).                                          |
+| Cline   | Laguna M.1        | Code quality improvements, test case generation, UI/design refinements, and GitHub/Vercel deployment issue fixes (Prompts **#9–#10**). |
 
 **Note:** AI tools were used as development assistants. Final implementation decisions, testing, code review, and integration were performed by the project author.
-
 
 ## How It Works
 

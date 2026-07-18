@@ -111,9 +111,7 @@ describe('InvestigationTimeline', () => {
 
       expect(screen.getByText('Collecting application & server logs')).toBeInTheDocument()
       expect(screen.getByText('Correlating metrics & infrastructure data')).toBeInTheDocument()
-      expect(
-        screen.getByText('Inspecting deployment history'),
-      ).toBeInTheDocument()
+      expect(screen.getByText('Inspecting deployment history')).toBeInTheDocument()
     })
   })
 
