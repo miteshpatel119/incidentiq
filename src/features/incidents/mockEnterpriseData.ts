@@ -5,11 +5,24 @@ export type EnterpriseIncidentProfile = (typeof enterpriseData.profiles)[number]
 export const enterpriseIncidentProfiles: readonly EnterpriseIncidentProfile[] =
   enterpriseData.profiles
 
+function looksLikeTimestamp(value: string): boolean {
+  if (value.length < 8) return false
+  const hasDateSeparator = value.includes('-') || value.includes('/')
+  const hasTimeSeparator = value.includes(':')
+  if (!hasDateSeparator && !hasTimeSeparator) return false
+
+  const parsed = Date.parse(value)
+  if (Number.isNaN(parsed)) return false
+
+  return true
+}
+
 function shiftTimestamps(obj: unknown, base: number): unknown {
   if (typeof obj === 'string') {
+    if (!looksLikeTimestamp(obj)) return obj
     const parsed = Date.parse(obj)
-    if (!Number.isNaN(parsed)) return new Date(parsed - (Date.now() - base)).toISOString()
-    return obj
+    if (Number.isNaN(parsed)) return obj
+    return new Date(parsed - (Date.now() - base)).toISOString()
   }
   if (Array.isArray(obj)) return obj.map((item) => shiftTimestamps(item, base))
   if (obj !== null && typeof obj === 'object') {
