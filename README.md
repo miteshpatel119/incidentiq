@@ -2,7 +2,11 @@
 
 **IncidentIQ** is a production-quality SaaS application for real-time incident monitoring, AI-powered root cause analysis (RCA), and post-incident reporting. Built for Site Reliability Engineers (SREs), DevOps teams, and platform engineers who need to quickly identify, investigate, and resolve service incidents.
 
-<a href="https://incidentiq-git-main-zarvis.vercel.app/dashboard" target="_blank">IncidentIQ Dashboard</a>
+## 🌐 Live Demo
+
+Try IncidentIQ here:
+
+**🔗 https://incidentiq-omega.vercel.app/login**
 
 ## Features
 
