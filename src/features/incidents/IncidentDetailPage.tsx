@@ -133,7 +133,7 @@ export function IncidentDetailPage(): JSX.Element {
       ) : null}
 
       {/* Investigation failed */}
-      {isFailed && investigation !== null ? (
+      {isFailed && investigation !== undefined ? (
         <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-5">
           <div className="flex items-start gap-3">
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />

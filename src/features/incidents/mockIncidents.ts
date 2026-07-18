@@ -1,5 +1,8 @@
 import type { Incident } from '@/features/incidents/types'
 
+const MIN = 60_000
+const HOUR = 3_600_000
+
 export const mockIncidents: readonly Incident[] = [
   {
     id: 'INC-1048',
@@ -9,6 +12,7 @@ export const mockIncidents: readonly Incident[] = [
     severity: 'critical',
     status: 'investigating',
     startedAt: '12 min ago',
+    createdAt: Date.now() - 12 * MIN,
   },
   {
     id: 'INC-1047',
@@ -18,6 +22,7 @@ export const mockIncidents: readonly Incident[] = [
     severity: 'high',
     status: 'mitigated',
     startedAt: '48 min ago',
+    createdAt: Date.now() - 48 * MIN,
   },
   {
     id: 'INC-1046',
@@ -27,6 +32,7 @@ export const mockIncidents: readonly Incident[] = [
     severity: 'high',
     status: 'investigating',
     startedAt: '2 hr ago',
+    createdAt: Date.now() - 2 * HOUR,
   },
   {
     id: 'INC-1045',
@@ -36,6 +42,7 @@ export const mockIncidents: readonly Incident[] = [
     severity: 'medium',
     status: 'resolved',
     startedAt: 'Yesterday',
+    createdAt: Date.now() - 24 * HOUR,
   },
   {
     id: 'INC-1044',
@@ -45,5 +52,6 @@ export const mockIncidents: readonly Incident[] = [
     severity: 'low',
     status: 'resolved',
     startedAt: 'Yesterday',
+    createdAt: Date.now() - 30 * HOUR,
   },
 ]

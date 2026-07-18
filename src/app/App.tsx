@@ -6,6 +6,7 @@ import { ErrorBoundary } from '@/features/shared/ErrorBoundary'
 import { IncidentSimulationProvider } from '@/features/incidents/IncidentSimulationProvider'
 import { InvestigationProvider } from '@/features/incidents/InvestigationProvider'
 import { ThemeProvider } from '@/features/theme/ThemeProvider'
+import { ToastContainer } from '@/components/ui/Toast'
 
 export function App(): JSX.Element {
   return (
@@ -16,6 +17,7 @@ export function App(): JSX.Element {
             <BrowserRouter>
               <ErrorBoundary>
                 <AppRoutes />
+                <ToastContainer />
               </ErrorBoundary>
             </BrowserRouter>
           </InvestigationProvider>

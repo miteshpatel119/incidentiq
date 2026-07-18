@@ -9,4 +9,5 @@ export interface Incident {
   readonly startedAt: string
   readonly status: IncidentStatus
   readonly summary: string
+  readonly createdAt: number
 }

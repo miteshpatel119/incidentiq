@@ -9,6 +9,7 @@ import {
 } from 'react'
 
 import { useAuth } from '@/features/auth/AuthProvider'
+import { showToast } from '@/components/ui/Toast'
 import { mockIncidents } from '@/features/incidents/mockIncidents'
 import {
   mockScenarios,
@@ -46,6 +47,7 @@ function createSimulatedIncident(scenario: IncidentScenario, sequence: number): 
     startedAt: 'Just now',
     status: scenario.status,
     summary: scenario.summary,
+    createdAt: Date.now(),
   }
 }
 
@@ -95,6 +97,7 @@ export function IncidentSimulationProvider({
         const incident = createSimulatedIncident(scenario, sequence)
         setIncidents((currentIncidents) => [incident, ...currentIncidents])
         setLatestScenario(scenario)
+        showToast(`New incident: ${incident.summary}`, 'incident')
         scenarioIndex += 1
         sequence += 1
         scheduleNextIncident()
@@ -119,6 +122,7 @@ export function IncidentSimulationProvider({
       startedAt: 'Just now',
       status: data.status,
       summary: data.summary,
+      createdAt: Date.now(),
     }
     setIncidents((currentIncidents) => [manualIncident, ...currentIncidents])
   }, [])
