@@ -1,0 +1,940 @@
+{
+  "profiles": [
+    {
+      "scenarioKey": "database-primary-unavailable",
+      "timeWindow": {
+        "detectedAt": "2026-07-16T09:14:22Z",
+        "firstCustomerImpactAt": "2026-07-16T09:15:04Z",
+        "region": "us-east-1",
+        "environment": "production"
+      },
+      "applicationLogs": [
+        {
+          "timestamp": "2026-07-16T09:14:22.381Z",
+          "level": "ERROR",
+          "service": "orders-api",
+          "traceId": "trc_6f2ea1",
+          "message": "DatabasePool.acquire failed after 3000ms",
+          "attributes": { "poolActive": "80", "poolMax": "80", "error": "ECONNREFUSED" }
+        },
+        {
+          "timestamp": "2026-07-16T09:14:34.011Z",
+          "level": "WARN",
+          "service": "orders-api",
+          "traceId": "trc_b9c801",
+          "message": "POST /v1/orders returned 503",
+          "attributes": { "tenant": "enterprise", "retryable": "true" }
+        }
+      ],
+      "serverLogs": [
+        {
+          "timestamp": "2026-07-16T09:13:58Z",
+          "host": "rds-orders-primary-01",
+          "facility": "postgresql",
+          "message": "FATAL: remaining connection slots are reserved for superuser connections"
+        },
+        {
+          "timestamp": "2026-07-16T09:14:19Z",
+          "host": "rds-orders-primary-01",
+          "facility": "kernel",
+          "message": "oom-killer invoked: memory cgroup out of memory"
+        }
+      ],
+      "deploymentHistory": [
+        {
+          "timestamp": "2026-07-16T08:57:00Z",
+          "service": "orders-api",
+          "version": "2026.07.16.2",
+          "status": "succeeded",
+          "change": "Enabled expanded database pool for bulk-order endpoint"
+        },
+        {
+          "timestamp": "2026-07-16T07:40:00Z",
+          "service": "orders-api",
+          "version": "2026.07.16.1",
+          "status": "succeeded",
+          "change": "Routine dependency refresh"
+        }
+      ],
+      "configurationChanges": [
+        {
+          "timestamp": "2026-07-16T08:55:44Z",
+          "actor": "deploy-bot",
+          "key": "DB_POOL_MAX",
+          "before": "40",
+          "after": "80",
+          "changeRequest": "CHG-8821"
+        }
+      ],
+      "metrics": [
+        {
+          "name": "orders_api.error_rate",
+          "unit": "percent",
+          "baseline": 0.18,
+          "peak": 82.4,
+          "observedAt": "2026-07-16T09:16:00Z"
+        },
+        {
+          "name": "postgres.active_connections",
+          "unit": "connections",
+          "baseline": 46,
+          "peak": 100,
+          "observedAt": "2026-07-16T09:14:00Z"
+        },
+        {
+          "name": "orders_api.p95_latency",
+          "unit": "milliseconds",
+          "baseline": 184,
+          "peak": 4821,
+          "observedAt": "2026-07-16T09:16:00Z"
+        }
+      ],
+      "infrastructure": {
+        "cpuPercent": 91,
+        "memoryPercent": 97,
+        "diskPercent": 68,
+        "node": "ip-10-42-18-71.ec2.internal",
+        "availabilityZone": "use1-az2"
+      },
+      "kubernetesEvents": [
+        {
+          "timestamp": "2026-07-16T09:14:08Z",
+          "namespace": "commerce",
+          "resource": "orders-api-7c8d9d8d7d-kqzrb",
+          "reason": "Unhealthy",
+          "message": "Readiness probe failed: dependency database unavailable"
+        },
+        {
+          "timestamp": "2026-07-16T09:15:41Z",
+          "namespace": "commerce",
+          "resource": "orders-api",
+          "reason": "ScalingReplicaSet",
+          "message": "Scaled up replica set from 8 to 12"
+        }
+      ],
+      "recentCommits": [
+        {
+          "sha": "8f31c2d",
+          "author": "Priya Shah",
+          "timestamp": "2026-07-16T08:31:07Z",
+          "message": "feat(orders): increase pool capacity for bulk checkout"
+        },
+        {
+          "sha": "1bcff42",
+          "author": "Marco Ruiz",
+          "timestamp": "2026-07-15T16:22:11Z",
+          "message": "chore: update postgres client"
+        }
+      ],
+      "changedFiles": ["services/orders/src/db/pool.ts", "services/orders/deploy/production.yaml"],
+      "codeSnippets": [
+        {
+          "file": "services/orders/src/db/pool.ts",
+          "startLine": 18,
+          "endLine": 24,
+          "language": "typescript",
+          "content": "max: env.DB_POOL_MAX ?? 80,\nconnectionTimeoutMillis: 3000,\nidleTimeoutMillis: 10000,"
+        }
+      ],
+      "historicalIncidents": [
+        {
+          "id": "INC-982",
+          "date": "2026-05-21",
+          "summary": "Order API pool saturation during promotion",
+          "resolution": "Reduced per-pod pool allocation from 60 to 24"
+        }
+      ],
+      "businessImpact": {
+        "customersAffected": "~18,400 active checkout sessions",
+        "revenueAtRisk": "$41,000 per 15 minutes",
+        "sla": "Enterprise checkout availability SLO breached",
+        "blastRadius": "Order creation and payment capture in us-east-1"
+      }
+    },
+    {
+      "scenarioKey": "payments-api-timeout",
+      "timeWindow": {
+        "detectedAt": "2026-07-16T10:02:11Z",
+        "firstCustomerImpactAt": "2026-07-16T10:03:00Z",
+        "region": "eu-west-1",
+        "environment": "production"
+      },
+      "applicationLogs": [
+        {
+          "timestamp": "2026-07-16T10:02:11.613Z",
+          "level": "WARN",
+          "service": "payments-api",
+          "traceId": "trc_119ace",
+          "message": "Gateway authorize request exceeded client timeout",
+          "attributes": { "provider": "Adyen", "durationMs": "5001" }
+        },
+        {
+          "timestamp": "2026-07-16T10:03:19.553Z",
+          "level": "ERROR",
+          "service": "payments-api",
+          "traceId": "trc_334ac1",
+          "message": "Payment authorization timed out",
+          "attributes": { "merchantTier": "enterprise", "retry": "1" }
+        }
+      ],
+      "serverLogs": [
+        {
+          "timestamp": "2026-07-16T10:01:57Z",
+          "host": "payments-nlb-euw1",
+          "facility": "nginx",
+          "message": "upstream timed out while reading response header from upstream"
+        },
+        {
+          "timestamp": "2026-07-16T10:02:45Z",
+          "host": "payments-node-03",
+          "facility": "systemd",
+          "message": "network interface eth0 retransmit rate exceeded alert threshold"
+        }
+      ],
+      "deploymentHistory": [
+        {
+          "timestamp": "2026-07-16T09:42:00Z",
+          "service": "payments-api",
+          "version": "2026.07.16.4",
+          "status": "succeeded",
+          "change": "Updated gateway client timeout handling"
+        }
+      ],
+      "configurationChanges": [
+        {
+          "timestamp": "2026-07-16T09:40:18Z",
+          "actor": "deploy-bot",
+          "key": "GATEWAY_TIMEOUT_MS",
+          "before": "8000",
+          "after": "5000",
+          "changeRequest": "CHG-8834"
+        }
+      ],
+      "metrics": [
+        {
+          "name": "payments.authorize.p95",
+          "unit": "milliseconds",
+          "baseline": 412,
+          "peak": 5010,
+          "observedAt": "2026-07-16T10:03:00Z"
+        },
+        {
+          "name": "payments.timeout_rate",
+          "unit": "percent",
+          "baseline": 0.04,
+          "peak": 11.7,
+          "observedAt": "2026-07-16T10:04:00Z"
+        },
+        {
+          "name": "gateway.retransmits",
+          "unit": "packets_per_second",
+          "baseline": 3,
+          "peak": 128,
+          "observedAt": "2026-07-16T10:03:00Z"
+        }
+      ],
+      "infrastructure": {
+        "cpuPercent": 63,
+        "memoryPercent": 71,
+        "diskPercent": 44,
+        "node": "ip-10-78-4-39.ec2.internal",
+        "availabilityZone": "euw1-az1"
+      },
+      "kubernetesEvents": [
+        {
+          "timestamp": "2026-07-16T10:02:22Z",
+          "namespace": "commerce",
+          "resource": "payments-api-6c99cc84f8-vl5ps",
+          "reason": "Unhealthy",
+          "message": "Readiness probe exceeded 5s response threshold"
+        }
+      ],
+      "recentCommits": [
+        {
+          "sha": "d42ef01",
+          "author": "Emma Hughes",
+          "timestamp": "2026-07-16T09:15:52Z",
+          "message": "fix(payments): align gateway timeout with retry budget"
+        },
+        {
+          "sha": "c6a77fd",
+          "author": "Anil Patel",
+          "timestamp": "2026-07-15T18:08:10Z",
+          "message": "refactor: isolate gateway client"
+        }
+      ],
+      "changedFiles": [
+        "services/payments/src/gateway/client.ts",
+        "services/payments/config/production.json"
+      ],
+      "codeSnippets": [
+        {
+          "file": "services/payments/src/gateway/client.ts",
+          "startLine": 52,
+          "endLine": 57,
+          "language": "typescript",
+          "content": "timeout: config.gatewayTimeoutMs,\nretry: { limit: 1, methods: ['POST'] },"
+        }
+      ],
+      "historicalIncidents": [
+        {
+          "id": "INC-1001",
+          "date": "2026-06-11",
+          "summary": "Gateway brownout in eu-west-1",
+          "resolution": "Raised timeout to 8 seconds and enabled provider failover"
+        }
+      ],
+      "businessImpact": {
+        "customersAffected": "~3,900 checkout attempts",
+        "revenueAtRisk": "$27,000 per 15 minutes",
+        "sla": "Payment authorization success rate below 99.5%",
+        "blastRadius": "EU card payment authorization only"
+      }
+    },
+    {
+      "scenarioKey": "kubernetes-pod-crash",
+      "timeWindow": {
+        "detectedAt": "2026-07-16T10:28:40Z",
+        "firstCustomerImpactAt": "2026-07-16T10:30:02Z",
+        "region": "us-west-2",
+        "environment": "production"
+      },
+      "applicationLogs": [
+        {
+          "timestamp": "2026-07-16T10:28:36.227Z",
+          "level": "ERROR",
+          "service": "checkout-worker",
+          "traceId": "trc_7d83e0",
+          "message": "Process terminated: JavaScript heap out of memory",
+          "attributes": { "batchSize": "1000", "heapUsedMb": "1018" }
+        },
+        {
+          "timestamp": "2026-07-16T10:29:41.511Z",
+          "level": "WARN",
+          "service": "checkout-worker",
+          "traceId": "trc_5d901f",
+          "message": "Event consumer lag increasing",
+          "attributes": { "topic": "checkout.completed" }
+        }
+      ],
+      "serverLogs": [
+        {
+          "timestamp": "2026-07-16T10:28:38Z",
+          "host": "eks-prod-west2-node-17",
+          "facility": "kubelet",
+          "message": "Container checkout-worker was OOMKilled"
+        },
+        {
+          "timestamp": "2026-07-16T10:29:12Z",
+          "host": "eks-prod-west2-node-17",
+          "facility": "kernel",
+          "message": "Memory cgroup out of memory: Kill process node"
+        }
+      ],
+      "deploymentHistory": [
+        {
+          "timestamp": "2026-07-16T10:12:00Z",
+          "service": "checkout-worker",
+          "version": "2026.07.16.1",
+          "status": "succeeded",
+          "change": "Increased reconciliation batch size"
+        }
+      ],
+      "configurationChanges": [
+        {
+          "timestamp": "2026-07-16T10:10:11Z",
+          "actor": "deploy-bot",
+          "key": "RECONCILIATION_BATCH_SIZE",
+          "before": "200",
+          "after": "1000",
+          "changeRequest": "CHG-8840"
+        }
+      ],
+      "metrics": [
+        {
+          "name": "kubernetes.pod_restarts",
+          "unit": "count",
+          "baseline": 0,
+          "peak": 7,
+          "observedAt": "2026-07-16T10:31:00Z"
+        },
+        {
+          "name": "checkout_worker.memory",
+          "unit": "percent",
+          "baseline": 54,
+          "peak": 99,
+          "observedAt": "2026-07-16T10:28:00Z"
+        },
+        {
+          "name": "checkout.consumer_lag",
+          "unit": "messages",
+          "baseline": 220,
+          "peak": 24800,
+          "observedAt": "2026-07-16T10:32:00Z"
+        }
+      ],
+      "infrastructure": {
+        "cpuPercent": 78,
+        "memoryPercent": 96,
+        "diskPercent": 39,
+        "node": "eks-prod-west2-node-17",
+        "availabilityZone": "usw2-az3"
+      },
+      "kubernetesEvents": [
+        {
+          "timestamp": "2026-07-16T10:28:38Z",
+          "namespace": "commerce",
+          "resource": "checkout-worker-5f8b6d5fb9-jc6xn",
+          "reason": "OOMKilled",
+          "message": "Container exceeded memory limit of 1024Mi"
+        },
+        {
+          "timestamp": "2026-07-16T10:30:03Z",
+          "namespace": "commerce",
+          "resource": "checkout-worker-5f8b6d5fb9-jc6xn",
+          "reason": "BackOff",
+          "message": "Back-off restarting failed container"
+        }
+      ],
+      "recentCommits": [
+        {
+          "sha": "a73d9b8",
+          "author": "Jon Bell",
+          "timestamp": "2026-07-16T09:51:31Z",
+          "message": "feat(worker): raise reconciliation batch for month-end"
+        }
+      ],
+      "changedFiles": [
+        "services/checkout-worker/src/reconcile.ts",
+        "services/checkout-worker/deploy/worker.yaml"
+      ],
+      "codeSnippets": [
+        {
+          "file": "services/checkout-worker/src/reconcile.ts",
+          "startLine": 71,
+          "endLine": 75,
+          "language": "typescript",
+          "content": "const batches = chunk(records, config.reconciliationBatchSize)\nawait Promise.all(batches.map(reconcileBatch))"
+        }
+      ],
+      "historicalIncidents": [
+        {
+          "id": "INC-943",
+          "date": "2026-04-30",
+          "summary": "Worker OOM during partner import",
+          "resolution": "Capped in-flight batches and raised memory request"
+        }
+      ],
+      "businessImpact": {
+        "customersAffected": "No immediate checkout rejection; 24,800 orders delayed",
+        "revenueAtRisk": "$9,500 in delayed fulfillment",
+        "sla": "Order confirmation event SLA at risk",
+        "blastRadius": "Checkout post-processing in us-west-2"
+      }
+    },
+    {
+      "scenarioKey": "deployment-regression",
+      "timeWindow": {
+        "detectedAt": "2026-07-16T11:08:02Z",
+        "firstCustomerImpactAt": "2026-07-16T11:08:39Z",
+        "region": "us-east-1",
+        "environment": "production"
+      },
+      "applicationLogs": [
+        {
+          "timestamp": "2026-07-16T11:08:02.002Z",
+          "level": "ERROR",
+          "service": "catalog-api",
+          "traceId": "trc_c32acd",
+          "message": "Cannot read properties of undefined (reading 'currency')",
+          "attributes": { "route": "GET /v2/catalog/items" }
+        },
+        {
+          "timestamp": "2026-07-16T11:09:11.204Z",
+          "level": "WARN",
+          "service": "catalog-api",
+          "traceId": "trc_674ab2",
+          "message": "Fallback catalog response served",
+          "attributes": { "cache": "stale" }
+        }
+      ],
+      "serverLogs": [
+        {
+          "timestamp": "2026-07-16T11:07:49Z",
+          "host": "catalog-node-06",
+          "facility": "nginx",
+          "message": "upstream sent invalid response while reading response header"
+        }
+      ],
+      "deploymentHistory": [
+        {
+          "timestamp": "2026-07-16T11:06:00Z",
+          "service": "catalog-api",
+          "version": "2026.07.16.3",
+          "status": "succeeded",
+          "change": "Released regional price enrichment"
+        }
+      ],
+      "configurationChanges": [
+        {
+          "timestamp": "2026-07-16T11:05:16Z",
+          "actor": "deploy-bot",
+          "key": "PRICE_ENRICHMENT_ENABLED",
+          "before": "false",
+          "after": "true",
+          "changeRequest": "CHG-8845"
+        }
+      ],
+      "metrics": [
+        {
+          "name": "catalog_api.5xx_rate",
+          "unit": "percent",
+          "baseline": 0.2,
+          "peak": 6.4,
+          "observedAt": "2026-07-16T11:10:00Z"
+        },
+        {
+          "name": "catalog_api.p95_latency",
+          "unit": "milliseconds",
+          "baseline": 131,
+          "peak": 1098,
+          "observedAt": "2026-07-16T11:10:00Z"
+        },
+        {
+          "name": "catalog_api.cpu",
+          "unit": "percent",
+          "baseline": 42,
+          "peak": 77,
+          "observedAt": "2026-07-16T11:10:00Z"
+        }
+      ],
+      "infrastructure": {
+        "cpuPercent": 77,
+        "memoryPercent": 69,
+        "diskPercent": 51,
+        "node": "ip-10-42-14-16.ec2.internal",
+        "availabilityZone": "use1-az1"
+      },
+      "kubernetesEvents": [
+        {
+          "timestamp": "2026-07-16T11:06:44Z",
+          "namespace": "commerce",
+          "resource": "catalog-api",
+          "reason": "RolloutComplete",
+          "message": "Deployment successfully rolled out version 2026.07.16.3"
+        }
+      ],
+      "recentCommits": [
+        {
+          "sha": "e19b8aa",
+          "author": "Sofia Chen",
+          "timestamp": "2026-07-16T10:22:43Z",
+          "message": "feat(catalog): add regional price enrichment"
+        }
+      ],
+      "changedFiles": [
+        "services/catalog/src/transformers/price.ts",
+        "services/catalog/src/routes/items.ts"
+      ],
+      "codeSnippets": [
+        {
+          "file": "services/catalog/src/transformers/price.ts",
+          "startLine": 34,
+          "endLine": 38,
+          "language": "typescript",
+          "content": "return {\n  amount: price.amount,\n  currency: regionalPrice.currency,\n}"
+        }
+      ],
+      "historicalIncidents": [
+        {
+          "id": "INC-911",
+          "date": "2026-03-18",
+          "summary": "Catalog 5xx after enrichment experiment",
+          "resolution": "Added null guard for missing regional price record"
+        }
+      ],
+      "businessImpact": {
+        "customersAffected": "~11% of catalog page views",
+        "revenueAtRisk": "$14,000 per hour in reduced conversion",
+        "sla": "Product catalog availability SLO breached",
+        "blastRadius": "Regionalized catalog reads in us-east-1"
+      }
+    },
+    {
+      "scenarioKey": "ssl-certificate-expiry",
+      "timeWindow": {
+        "detectedAt": "2026-07-16T11:36:00Z",
+        "firstCustomerImpactAt": "Not yet impacted",
+        "region": "global",
+        "environment": "production"
+      },
+      "applicationLogs": [
+        {
+          "timestamp": "2026-07-16T11:35:58.100Z",
+          "level": "WARN",
+          "service": "edge-gateway",
+          "traceId": "trc_cert001",
+          "message": "Certificate expiry threshold crossed",
+          "attributes": { "hostname": "api.incidentiq-demo.com", "daysRemaining": "3" }
+        }
+      ],
+      "serverLogs": [
+        {
+          "timestamp": "2026-07-16T11:36:00Z",
+          "host": "cert-monitor-01",
+          "facility": "certbot",
+          "message": "Renewal skipped: DNS validation credential is missing"
+        }
+      ],
+      "deploymentHistory": [
+        {
+          "timestamp": "2026-07-12T15:00:00Z",
+          "service": "edge-gateway",
+          "version": "2026.07.12.1",
+          "status": "succeeded",
+          "change": "Updated ingress controller"
+        }
+      ],
+      "configurationChanges": [
+        {
+          "timestamp": "2026-07-12T14:51:11Z",
+          "actor": "platform-bot",
+          "key": "CERT_MANAGER_DNS_SECRET",
+          "before": "present",
+          "after": "removed",
+          "changeRequest": "CHG-8788"
+        }
+      ],
+      "metrics": [
+        {
+          "name": "tls.certificate_days_remaining",
+          "unit": "days",
+          "baseline": 30,
+          "peak": 3,
+          "observedAt": "2026-07-16T11:36:00Z"
+        },
+        {
+          "name": "edge_gateway.tls_handshake_failures",
+          "unit": "percent",
+          "baseline": 0,
+          "peak": 0,
+          "observedAt": "2026-07-16T11:36:00Z"
+        },
+        {
+          "name": "edge_gateway.cpu",
+          "unit": "percent",
+          "baseline": 29,
+          "peak": 31,
+          "observedAt": "2026-07-16T11:36:00Z"
+        }
+      ],
+      "infrastructure": {
+        "cpuPercent": 31,
+        "memoryPercent": 46,
+        "diskPercent": 38,
+        "node": "ingress-global-02",
+        "availabilityZone": "global"
+      },
+      "kubernetesEvents": [
+        {
+          "timestamp": "2026-07-16T11:36:00Z",
+          "namespace": "platform",
+          "resource": "certificate/api-public",
+          "reason": "Issuing",
+          "message": "Waiting for DNS-01 challenge credentials"
+        }
+      ],
+      "recentCommits": [
+        {
+          "sha": "2a009e4",
+          "author": "Platform Automation",
+          "timestamp": "2026-07-12T14:42:00Z",
+          "message": "chore(ingress): rotate obsolete DNS secret"
+        }
+      ],
+      "changedFiles": [
+        "platform/ingress/cert-manager.yaml",
+        "platform/secrets/dns-provider.enc.yaml"
+      ],
+      "codeSnippets": [
+        {
+          "file": "platform/ingress/cert-manager.yaml",
+          "startLine": 14,
+          "endLine": 18,
+          "language": "yaml",
+          "content": "solvers:\n  - dns01:\n      route53:\n        accessKeyIDSecretRef: {}"
+        }
+      ],
+      "historicalIncidents": [
+        {
+          "id": "INC-862",
+          "date": "2026-01-18",
+          "summary": "Partner API certificate expired",
+          "resolution": "Added expiry alert at 21, 14, and 7 day thresholds"
+        }
+      ],
+      "businessImpact": {
+        "customersAffected": "No current impact; all public API consumers at risk",
+        "revenueAtRisk": "$310,000 daily API-mediated revenue",
+        "sla": "Preventative critical dependency risk",
+        "blastRadius": "Global API and partner integrations if unremediated"
+      }
+    },
+    {
+      "scenarioKey": "configuration-change",
+      "timeWindow": {
+        "detectedAt": "2026-07-16T12:01:13Z",
+        "firstCustomerImpactAt": "2026-07-16T12:01:31Z",
+        "region": "us-east-1",
+        "environment": "production"
+      },
+      "applicationLogs": [
+        {
+          "timestamp": "2026-07-16T12:01:31.081Z",
+          "level": "INFO",
+          "service": "identity-api",
+          "traceId": "trc_mfa703",
+          "message": "MFA challenge required for partner identity",
+          "attributes": { "partnerId": "northwind-b2b", "enforceMfa": "true" }
+        },
+        {
+          "timestamp": "2026-07-16T12:02:14.210Z",
+          "level": "WARN",
+          "service": "identity-api",
+          "traceId": "trc_mfa712",
+          "message": "Partner authentication abandoned at MFA step",
+          "attributes": { "provider": "saml" }
+        }
+      ],
+      "serverLogs": [
+        {
+          "timestamp": "2026-07-16T12:01:13Z",
+          "host": "config-audit-01",
+          "facility": "audit",
+          "message": "Feature flag enforce_mfa_for_partners changed by deployment automation"
+        }
+      ],
+      "deploymentHistory": [
+        {
+          "timestamp": "2026-07-16T11:58:00Z",
+          "service": "identity-api",
+          "version": "2026.07.16.5",
+          "status": "succeeded",
+          "change": "Published partner access control defaults"
+        }
+      ],
+      "configurationChanges": [
+        {
+          "timestamp": "2026-07-16T12:01:13Z",
+          "actor": "deploy-bot",
+          "key": "enforce_mfa_for_partners",
+          "before": "false",
+          "after": "true",
+          "changeRequest": "CHG-8852"
+        }
+      ],
+      "metrics": [
+        {
+          "name": "identity.partner_login_success",
+          "unit": "percent",
+          "baseline": 99.2,
+          "peak": 78.1,
+          "observedAt": "2026-07-16T12:03:00Z"
+        },
+        {
+          "name": "identity.mfa_challenge_rate",
+          "unit": "percent",
+          "baseline": 2.1,
+          "peak": 100,
+          "observedAt": "2026-07-16T12:02:00Z"
+        },
+        {
+          "name": "identity_api.cpu",
+          "unit": "percent",
+          "baseline": 34,
+          "peak": 41,
+          "observedAt": "2026-07-16T12:03:00Z"
+        }
+      ],
+      "infrastructure": {
+        "cpuPercent": 41,
+        "memoryPercent": 52,
+        "diskPercent": 36,
+        "node": "ip-10-42-21-90.ec2.internal",
+        "availabilityZone": "use1-az2"
+      },
+      "kubernetesEvents": [
+        {
+          "timestamp": "2026-07-16T11:58:41Z",
+          "namespace": "identity",
+          "resource": "identity-api",
+          "reason": "RolloutComplete",
+          "message": "Deployment successfully rolled out version 2026.07.16.5"
+        }
+      ],
+      "recentCommits": [
+        {
+          "sha": "bf381aa",
+          "author": "Maya Singh",
+          "timestamp": "2026-07-16T11:26:15Z",
+          "message": "feat(identity): default MFA policy for new partner tenants"
+        }
+      ],
+      "changedFiles": [
+        "services/identity/src/policy/partnerPolicy.ts",
+        "services/identity/config/feature-flags.json"
+      ],
+      "codeSnippets": [
+        {
+          "file": "services/identity/src/policy/partnerPolicy.ts",
+          "startLine": 22,
+          "endLine": 26,
+          "language": "typescript",
+          "content": "const requiresMfa = flags.enforceMfaForPartners || tenant.requiresMfa\nreturn requiresMfa ? challengeMfa(context) : issueSession(context)"
+        }
+      ],
+      "historicalIncidents": [
+        {
+          "id": "INC-975",
+          "date": "2026-05-09",
+          "summary": "Partner SSO failures after MFA policy update",
+          "resolution": "Excluded SAML-only partners until enrollment completed"
+        }
+      ],
+      "businessImpact": {
+        "customersAffected": "17 partner organizations unable to complete SSO",
+        "revenueAtRisk": "$6,000 per hour in partner transactions",
+        "sla": "Partner authentication success below contractual target",
+        "blastRadius": "SAML partners without MFA enrollment"
+      }
+    },
+    {
+      "scenarioKey": "message-queue-backlog",
+      "timeWindow": {
+        "detectedAt": "2026-07-16T12:22:08Z",
+        "firstCustomerImpactAt": "2026-07-16T12:29:00Z",
+        "region": "us-west-2",
+        "environment": "production"
+      },
+      "applicationLogs": [
+        {
+          "timestamp": "2026-07-16T12:22:08.348Z",
+          "level": "WARN",
+          "service": "event-worker",
+          "traceId": "trc_lag881",
+          "message": "Consumer lag exceeds operating threshold",
+          "attributes": { "topic": "orders.events", "lag": "184000" }
+        },
+        {
+          "timestamp": "2026-07-16T12:24:53.911Z",
+          "level": "ERROR",
+          "service": "event-worker",
+          "traceId": "trc_lag903",
+          "message": "Downstream inventory API throttled",
+          "attributes": { "status": "429", "retryAfter": "2" }
+        }
+      ],
+      "serverLogs": [
+        {
+          "timestamp": "2026-07-16T12:23:20Z",
+          "host": "kafka-prod-west2-04",
+          "facility": "kafka",
+          "message": "Consumer group orders-reconciler rebalance duration 18423ms"
+        }
+      ],
+      "deploymentHistory": [
+        {
+          "timestamp": "2026-07-16T12:07:00Z",
+          "service": "event-worker",
+          "version": "2026.07.16.2",
+          "status": "succeeded",
+          "change": "Enabled inventory enrichment for all order events"
+        }
+      ],
+      "configurationChanges": [
+        {
+          "timestamp": "2026-07-16T12:05:44Z",
+          "actor": "deploy-bot",
+          "key": "INVENTORY_ENRICHMENT_CONCURRENCY",
+          "before": "20",
+          "after": "80",
+          "changeRequest": "CHG-8860"
+        }
+      ],
+      "metrics": [
+        {
+          "name": "orders_events.consumer_lag",
+          "unit": "messages",
+          "baseline": 400,
+          "peak": 184000,
+          "observedAt": "2026-07-16T12:28:00Z"
+        },
+        {
+          "name": "inventory_api.429_rate",
+          "unit": "percent",
+          "baseline": 0,
+          "peak": 18.2,
+          "observedAt": "2026-07-16T12:25:00Z"
+        },
+        {
+          "name": "event_worker.cpu",
+          "unit": "percent",
+          "baseline": 48,
+          "peak": 89,
+          "observedAt": "2026-07-16T12:27:00Z"
+        }
+      ],
+      "infrastructure": {
+        "cpuPercent": 89,
+        "memoryPercent": 74,
+        "diskPercent": 42,
+        "node": "eks-prod-west2-node-22",
+        "availabilityZone": "usw2-az2"
+      },
+      "kubernetesEvents": [
+        {
+          "timestamp": "2026-07-16T12:26:12Z",
+          "namespace": "commerce",
+          "resource": "event-worker",
+          "reason": "SuccessfulRescale",
+          "message": "HorizontalPodAutoscaler scaled from 6 to 14 replicas"
+        }
+      ],
+      "recentCommits": [
+        {
+          "sha": "f055ce1",
+          "author": "Daniel Kim",
+          "timestamp": "2026-07-16T11:44:08Z",
+          "message": "feat(events): enrich orders with live inventory"
+        }
+      ],
+      "changedFiles": [
+        "services/event-worker/src/inventory/enrich.ts",
+        "services/event-worker/config/consumer.ts"
+      ],
+      "codeSnippets": [
+        {
+          "file": "services/event-worker/src/inventory/enrich.ts",
+          "startLine": 40,
+          "endLine": 45,
+          "language": "typescript",
+          "content": "await Promise.all(events.map((event) => inventoryClient.lookup(event.sku)))"
+        }
+      ],
+      "historicalIncidents": [
+        {
+          "id": "INC-1008",
+          "date": "2026-06-19",
+          "summary": "Kafka backlog after inventory provider rate limit",
+          "resolution": "Bounded enrichment concurrency to 20 per worker"
+        }
+      ],
+      "businessImpact": {
+        "customersAffected": "~184,000 order status updates delayed",
+        "revenueAtRisk": "$12,000 in delayed fulfillment operations",
+        "sla": "Order tracking updates outside five-minute SLA",
+        "blastRadius": "Order confirmation and inventory updates in us-west-2"
+      }
+    }
+  ]
+}

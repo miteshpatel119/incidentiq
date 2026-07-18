@@ -1,0 +1,65 @@
+[
+  {
+    "key": "database-primary-unavailable",
+    "summary": "Primary database connection failures detected",
+    "service": "orders-api",
+    "severity": "critical",
+    "status": "investigating",
+    "source": "Datadog database monitor",
+    "signal": "PostgreSQL connection error rate reached 82% in us-east-1."
+  },
+  {
+    "key": "payments-api-timeout",
+    "summary": "Payment authorization requests exceeding latency SLO",
+    "service": "payments-api",
+    "severity": "high",
+    "status": "investigating",
+    "source": "APM latency monitor",
+    "signal": "p95 latency exceeded 4.8s for the /authorize endpoint."
+  },
+  {
+    "key": "kubernetes-pod-crash",
+    "summary": "Checkout worker pods entering CrashLoopBackOff",
+    "service": "checkout-worker",
+    "severity": "high",
+    "status": "investigating",
+    "source": "Kubernetes cluster monitor",
+    "signal": "7 of 12 pods restarted more than five times within ten minutes."
+  },
+  {
+    "key": "deployment-regression",
+    "summary": "Error rate increased after catalog service deployment",
+    "service": "catalog-api",
+    "severity": "medium",
+    "status": "investigating",
+    "source": "GitHub deployment monitor",
+    "signal": "5xx rate rose from 0.2% to 6.4% after release 2026.07.16.3."
+  },
+  {
+    "key": "ssl-certificate-expiry",
+    "summary": "Public API TLS certificate expires within 72 hours",
+    "service": "edge-gateway",
+    "severity": "medium",
+    "status": "investigating",
+    "source": "Certificate expiry monitor",
+    "signal": "api.incidentiq-demo.com certificate expires on 2026-07-19."
+  },
+  {
+    "key": "configuration-change",
+    "summary": "Feature flag configuration changed in production",
+    "service": "identity-api",
+    "severity": "low",
+    "status": "investigating",
+    "source": "Configuration audit monitor",
+    "signal": "Flag enforce_mfa_for_partners changed from false to true by deployment automation."
+  },
+  {
+    "key": "message-queue-backlog",
+    "summary": "Order event processing backlog above operating threshold",
+    "service": "event-worker",
+    "severity": "high",
+    "status": "investigating",
+    "source": "Queue depth monitor",
+    "signal": "orders.events consumer lag reached 184,000 messages."
+  }
+]

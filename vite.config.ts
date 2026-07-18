@@ -1,0 +1,22 @@
+import { fileURLToPath } from 'node:url'
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url))
+
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': `${__dirname}/src`,
+    },
+  },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+    },
+  },
+})
