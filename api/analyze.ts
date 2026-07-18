@@ -1,4 +1,3 @@
-import 'dotenv/config'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
 import { analyzeIncident, type RCAResult } from './lib/openrouterAnalysis'
