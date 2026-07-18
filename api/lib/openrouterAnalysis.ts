@@ -71,7 +71,34 @@ Include the following fields in your response:
 - postIncidentReport: string
 `
 
+function slimEnterpriseData(data: unknown): unknown {
+  if (data === null || typeof data !== 'object') return data
+  const obj = data as Record<string, unknown>
+
+  const limitArray = (arr: unknown[], max: number): unknown[] => {
+    if (!Array.isArray(arr)) return []
+    return arr.slice(0, max)
+  }
+
+  return {
+    timeWindow: obj.timeWindow,
+    applicationLogs: limitArray((obj.applicationLogs as unknown[]) || [], 3),
+    serverLogs: limitArray((obj.serverLogs as unknown[]) || [], 2),
+    deploymentHistory: limitArray((obj.deploymentHistory as unknown[]) || [], 2),
+    configurationChanges: limitArray((obj.configurationChanges as unknown[]) || [], 2),
+    metrics: limitArray((obj.metrics as unknown[]) || [], 3),
+    infrastructure: obj.infrastructure,
+    kubernetesEvents: limitArray((obj.kubernetesEvents as unknown[]) || [], 2),
+    recentCommits: limitArray((obj.recentCommits as unknown[]) || [], 2),
+    changedFiles: limitArray((obj.changedFiles as unknown[]) || [], 5),
+    codeSnippets: limitArray((obj.codeSnippets as unknown[]) || [], 1),
+    historicalIncidents: limitArray((obj.historicalIncidents as unknown[]) || [], 1),
+    businessImpact: obj.businessImpact,
+  }
+}
+
 export async function analyzeIncident(apiKey: string, input: AnalyzeInput): Promise<RCAResult> {
+  const trimmedEnterpriseData = slimEnterpriseData(input.enterpriseData)
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -94,7 +121,7 @@ Summary: ${input.summary}
 Alert Signal: ${input.signal}
 
 Enterprise Data (JSON):
-${JSON.stringify(input.enterpriseData, null, 2)}
+${JSON.stringify(trimmedEnterpriseData, null, 2)}
 
 Analyze this incident and provide a complete root cause analysis.`,
         },
