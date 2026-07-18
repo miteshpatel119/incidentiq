@@ -1,5 +1,5 @@
 import { ChevronRight, Search } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -14,14 +14,26 @@ interface IncidentTableProps {
 export function IncidentTable({ incidents }: IncidentTableProps): JSX.Element {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
+  const debounceTimer = useRef<number | null>(null)
+
+  useEffect(() => {
+    debounceTimer.current = window.setTimeout(() => {
+      setDebouncedQuery(query)
+    }, 200)
+    return () => {
+      if (debounceTimer.current !== null) window.clearTimeout(debounceTimer.current)
+    }
+  }, [query])
+
   const results = useMemo(
     () =>
       incidents.filter((incident) =>
         `${incident.id} ${incident.summary} ${incident.service}`
           .toLowerCase()
-          .includes(query.trim().toLowerCase()),
+          .includes(debouncedQuery.trim().toLowerCase()),
       ),
-    [incidents, query],
+    [incidents, debouncedQuery],
   )
 
   function handleRowClick(incidentId: string): void {

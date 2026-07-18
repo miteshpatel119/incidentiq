@@ -3,6 +3,7 @@ import {
   type ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -95,6 +96,8 @@ function createFallbackEnterpriseData(incident: Incident): EnterpriseIncidentPro
   }
 }
 
+const INVESTIGATIONS_STORAGE_KEY = 'incidentiq-investigations'
+
 interface InvestigationContextValue {
   readonly investigations: ReadonlyMap<string, Investigation>
   readonly startInvestigation: (incident: Incident) => Promise<void>
@@ -105,7 +108,18 @@ const InvestigationContext = createContext<InvestigationContextValue | null>(nul
 
 export function InvestigationProvider({ children }: { readonly children: ReactNode }): JSX.Element {
   const [investigations, setInvestigations] = useState<ReadonlyMap<string, Investigation>>(
-    () => new Map(),
+    () => {
+      try {
+        const raw = localStorage.getItem(INVESTIGATIONS_STORAGE_KEY)
+        if (raw !== null) {
+          const entries = JSON.parse(raw) as Array<[string, Investigation]>
+          return new Map(entries)
+        }
+      } catch {
+        // ignore parse errors
+      }
+      return new Map()
+    },
   )
   const abortRef = useRef<AbortController | null>(null)
 
@@ -292,6 +306,15 @@ export function InvestigationProvider({ children }: { readonly children: ReactNo
     () => ({ investigations, startInvestigation, getInvestigation }),
     [investigations, startInvestigation, getInvestigation],
   )
+
+  useEffect(() => {
+    try {
+      const entries = Array.from(investigations.entries())
+      localStorage.setItem(INVESTIGATIONS_STORAGE_KEY, JSON.stringify(entries))
+    } catch {
+      // ignore storage errors
+    }
+  }, [investigations])
 
   return <InvestigationContext.Provider value={value}>{children}</InvestigationContext.Provider>
 }

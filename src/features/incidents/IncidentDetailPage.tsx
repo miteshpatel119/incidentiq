@@ -102,7 +102,9 @@ export function IncidentDetailPage(): JSX.Element {
           {isCompleted ? (
             <Button
               onClick={() => {
-                handleAnalyze()
+                if (window.confirm('Start a new analysis? This will replace the current result.')) {
+                  handleAnalyze()
+                }
               }}
               variant="outline"
             >
