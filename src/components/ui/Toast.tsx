@@ -2,31 +2,21 @@ import { AlertTriangle, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { cn } from '@/lib/utils'
-
-interface ToastData {
-  readonly id: string
-  readonly message: string
-  readonly type: 'incident' | 'info' | 'error'
-}
-
-let addToastFn: ((toast: ToastData) => void) | null = null
-
-export function showToast(message: string, type: ToastData['type'] = 'info'): void {
-  addToastFn?.({ id: `${Date.now()}-${Math.random()}`, message, type })
-}
+import type { ToastData } from '@/lib/toast'
+import { setAddToastHandler } from '@/lib/toast'
 
 export function ToastContainer(): JSX.Element {
   const [toasts, setToasts] = useState<readonly ToastData[]>([])
 
   useEffect(() => {
-    addToastFn = (toast: ToastData) => {
+    setAddToastHandler((toast: ToastData) => {
       setToasts((current) => [...current, toast])
       window.setTimeout(() => {
         setToasts((current) => current.filter((t) => t.id !== toast.id))
       }, 5000)
-    }
+    })
     return () => {
-      addToastFn = null
+      setAddToastHandler(null)
     }
   }, [])
 

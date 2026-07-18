@@ -9,7 +9,7 @@ import {
 } from 'react'
 
 import { useAuth } from '@/features/auth/AuthProvider'
-import { showToast } from '@/components/ui/Toast'
+import { showToast } from '@/lib/toast'
 import { mockIncidents } from '@/features/incidents/mockIncidents'
 import {
   mockScenarios,
