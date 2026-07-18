@@ -91,7 +91,9 @@ describe('mockEnterpriseData', () => {
       const baseTime = Date.parse('2026-07-18T12:00:00Z')
       const result = getEnterpriseIncidentProfile('database-primary-unavailable', baseTime)
       expect(result).toBeDefined()
-      expect(result?.configurationChanges[0].timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
+      expect(result?.configurationChanges[0].timestamp).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/,
+      )
     })
 
     it('shifts kubernetes events timestamps', () => {

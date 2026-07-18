@@ -70,9 +70,7 @@ describe('mockRCAResults', () => {
       const profile = getEnterpriseIncidentProfile('database-primary-unavailable', Date.now())!
       const result = generateMockRCAResult('INC-TEST-006', profile)
 
-      const configEvidence = result.evidence.filter((e) =>
-        e.title.includes('Configuration change'),
-      )
+      const configEvidence = result.evidence.filter((e) => e.title.includes('Configuration change'))
       expect(configEvidence.length).toBeGreaterThan(0)
       expect(configEvidence[0].severity).toBe('critical')
     })
@@ -81,9 +79,7 @@ describe('mockRCAResults', () => {
       const profile = getEnterpriseIncidentProfile('deployment-regression', Date.now())!
       const result = generateMockRCAResult('INC-TEST-007', profile)
 
-      const deploymentEvidence = result.evidence.filter((e) =>
-        e.title.includes('deployment'),
-      )
+      const deploymentEvidence = result.evidence.filter((e) => e.title.includes('deployment'))
       expect(deploymentEvidence.length).toBeGreaterThan(0)
       expect(deploymentEvidence[0].severity).toBe('critical')
     })
@@ -92,9 +88,7 @@ describe('mockRCAResults', () => {
       const profile = getEnterpriseIncidentProfile('kubernetes-pod-crash', Date.now())!
       const result = generateMockRCAResult('INC-TEST-008', profile)
 
-      const metricEvidence = result.evidence.filter((e) =>
-        e.title.includes('Metric anomaly'),
-      )
+      const metricEvidence = result.evidence.filter((e) => e.title.includes('Metric anomaly'))
       expect(metricEvidence.length).toBeGreaterThan(0)
       expect(metricEvidence[0].severity).toBe('supporting')
     })
@@ -103,9 +97,7 @@ describe('mockRCAResults', () => {
       const profile = getEnterpriseIncidentProfile('ssl-certificate-expiry', Date.now())!
       const result = generateMockRCAResult('INC-TEST-009', profile)
 
-      const histEvidence = result.evidence.filter((e) =>
-        e.title.includes('historical incident'),
-      )
+      const histEvidence = result.evidence.filter((e) => e.title.includes('historical incident'))
       expect(histEvidence.length).toBeGreaterThan(0)
       expect(histEvidence[0].severity).toBe('contextual')
     })
@@ -137,9 +129,7 @@ describe('mockRCAResults', () => {
       const profile = getEnterpriseIncidentProfile('kubernetes-pod-crash', Date.now())!
       const result = generateMockRCAResult('INC-TEST-012', profile)
 
-      const kubectlCommands = result.recommendedCommands.filter((cmd) =>
-        cmd.includes('kubectl'),
-      )
+      const kubectlCommands = result.recommendedCommands.filter((cmd) => cmd.includes('kubectl'))
       expect(kubectlCommands.length).toBeGreaterThan(0)
     })
 
@@ -148,12 +138,8 @@ describe('mockRCAResults', () => {
       const result = generateMockRCAResult('INC-TEST-013', profile)
 
       expect(result.verificationSteps.length).toBeGreaterThanOrEqual(3)
-      expect(result.verificationSteps).toContain(
-        'Verify service health endpoints return 200 OK',
-      )
-      expect(result.verificationSteps).toContain(
-        'Confirm error rates return to baseline levels',
-      )
+      expect(result.verificationSteps).toContain('Verify service health endpoints return 200 OK')
+      expect(result.verificationSteps).toContain('Confirm error rates return to baseline levels')
     })
 
     it('generates preventive actions', () => {
@@ -226,9 +212,9 @@ describe('mockRCAResults', () => {
 
       if (result.timeline.length > 1) {
         for (let i = 1; i < result.timeline.length; i++) {
-          expect(result.timeline[i]?.timestamp.localeCompare(result.timeline[i - 1]?.timestamp)).toBe(
-            1,
-          )
+          expect(
+            result.timeline[i]?.timestamp.localeCompare(result.timeline[i - 1]?.timestamp),
+          ).toBe(1)
         }
       }
     })
