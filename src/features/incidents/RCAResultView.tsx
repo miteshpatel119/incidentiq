@@ -370,10 +370,10 @@ ${result.postIncidentReport}
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium uppercase tracking-wider text-primary">
+          <p className="text-xs font-semibold uppercase tracking-wider text-primary">
             Root cause analysis
           </p>
-          <h2 className="mt-1 text-xl font-semibold tracking-tight break-words">
+          <h2 className="text-md leading-7 tracking-tight break-words">
             {result.rootCause}
           </h2>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{result.summary}</p>
