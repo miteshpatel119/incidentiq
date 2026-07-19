@@ -365,6 +365,60 @@ function safeTimeframe(raw: unknown): 'Short Term' | 'Medium Term' | 'Long Term'
   return 'Short Term'
 }
 
+// Sanitize JSON content to handle malformed responses from LLM
+function sanitizeJsonContent(content: string): string {
+  // Try to extract JSON object from the content
+  // First, try to find a complete JSON object
+  const jsonStart = content.indexOf('{')
+  const jsonEnd = content.lastIndexOf('}')
+
+  if (jsonStart === -1 || jsonEnd === -1 || jsonEnd <= jsonStart) {
+    return content
+  }
+
+  let jsonContent = content.slice(jsonStart, jsonEnd + 1)
+
+  // Handle unterminated strings by escaping quotes that appear in strings
+  // Find strings that might have unescaped newlines or special characters
+  let inString = false
+  let escapeNext = false
+  const result: string[] = []
+
+  for (let i = 0; i < jsonContent.length; i++) {
+    const char = jsonContent[i]
+
+    if (escapeNext) {
+      result.push(char)
+      escapeNext = false
+      continue
+    }
+
+    if (char === '\\' && inString) {
+      result.push(char)
+      escapeNext = true
+      continue
+    }
+
+    if (char === '"') {
+      inString = !inString
+      result.push(char)
+      continue
+    }
+
+    if (inString && (char === '\n' || char === '\r' || char === '\t')) {
+      // Escape control characters within strings
+      result.push(char === '\n' ? '\\n' : char === '\r' ? '\\r' : '\\t')
+      continue
+    }
+
+    result.push(char)
+  }
+
+  jsonContent = result.join('')
+
+  return jsonContent
+}
+
 export async function analyzeIncident(apiKey: string, input: AnalyzeInput): Promise<RCAResult> {
   const trimmedEnterpriseData = slimEnterpriseData(input.enterpriseData)
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -408,13 +462,20 @@ Analyze this incident and provide a complete root cause analysis with confidence
     throw new Error('No response from OpenRouter')
   }
 
-  // Extract JSON from potential markdown code blocks
-  const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/)
-  const jsonContent = jsonMatch?.[1] ?? content
+  // Try multiple parsing strategies
+  const jsonContent = sanitizeJsonContent(content)
 
   try {
     return JSON.parse(jsonContent) as RCAResult
   } catch (parseError) {
-    throw new Error(`Failed to parse OpenRouter response: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`)
+    // Try sanitizing and retry once
+    const sanitized = sanitizeJsonContent(jsonContent)
+    try {
+      return JSON.parse(sanitized) as RCAResult
+    } catch {
+      throw new Error(
+        `Failed to parse OpenRouter response: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`,
+      )
+    }
   }
 }
