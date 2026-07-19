@@ -31,15 +31,22 @@ export function ToastContainer(): JSX.Element {
             'duration-300 animate-in fade-in slide-in-from-right-full',
             toast.type === 'incident'
               ? 'border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-200'
-              : toast.type === 'error'
-                ? 'border-destructive/30 bg-destructive/10 text-destructive-foreground'
-                : 'border-border bg-card text-foreground',
+              : toast.type === 'warning'
+                ? 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-200'
+                : toast.type === 'error'
+                  ? 'border-destructive/30 bg-destructive/10 text-destructive-foreground'
+                  : 'border-border bg-card text-foreground',
           )}
           key={toast.id}
           role="alert"
         >
-          {toast.type === 'incident' ? (
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rose-400" />
+          {toast.type === 'incident' || toast.type === 'warning' ? (
+            <AlertTriangle
+              className={cn(
+                'mt-0.5 h-4 w-4 shrink-0',
+                toast.type === 'warning' ? 'text-amber-400' : 'text-rose-400',
+              )}
+            />
           ) : null}
           <p className="text-sm">{toast.message}</p>
           <button
