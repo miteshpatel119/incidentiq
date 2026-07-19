@@ -163,6 +163,9 @@ function EvidenceCard({ evidence }: { readonly evidence: readonly EvidenceItem[]
 }
 
 function TimelineCard({ timeline }: { readonly timeline: readonly TimelineEvent[] }): JSX.Element {
+  const [isExpanded, setIsExpanded] = useState(false)
+  const displayItems = isExpanded ? timeline : timeline.slice(0, 5)
+
   const typeColors: Record<string, string> = {
     error: 'border-l-rose-500 bg-rose-500/5',
     warning: 'border-l-amber-500 bg-amber-500/5',
@@ -191,10 +194,10 @@ function TimelineCard({ timeline }: { readonly timeline: readonly TimelineEvent[
   return (
     <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
       <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-        Incident timeline
+        Incident timeline ({timeline.length})
       </h3>
-      <div className="space-y-2 max-h-96 overflow-y-auto">
-        {timeline.map((event, index) => (
+      <div className="space-y-2">
+        {displayItems.map((event, index) => (
           <div
             className={cn(
               'rounded-r-lg border-l-2 py-3 pl-4',
@@ -231,6 +234,25 @@ function TimelineCard({ timeline }: { readonly timeline: readonly TimelineEvent[
           </div>
         ))}
       </div>
+      {timeline.length > 5 ? (
+        <button
+          className="mt-3 flex w-full items-center justify-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+          onClick={() => setIsExpanded((prev) => !prev)}
+          type="button"
+        >
+          {isExpanded ? (
+            <>
+              <ChevronDown className="h-3 w-3" />
+              Show less
+            </>
+          ) : (
+            <>
+              <ChevronRight className="h-3 w-3" />
+              Show {timeline.length - 5} more
+            </>
+          )}
+        </button>
+      ) : null}
     </div>
   )
 }

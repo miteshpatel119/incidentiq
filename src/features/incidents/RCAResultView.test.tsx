@@ -245,7 +245,7 @@ describe('RCAResultView', () => {
     it('displays timeline section', () => {
       render(<RCAResultView result={mockResult} incidentId="INC-TEST-001" />)
 
-      expect(screen.getByText('Incident timeline')).toBeInTheDocument()
+      expect(screen.getByText(/Incident timeline/)).toBeInTheDocument()
     })
 
     it('displays timeline events', () => {
