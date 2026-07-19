@@ -511,7 +511,7 @@ export async function analyzeIncident(apiKey: string, input: AnalyzeInput): Prom
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'openrouter/auto',
+      model: 'google/gemini-2.5-flash-lite',
       response_format: { type: 'json_object' },
       temperature: 0.2,
       max_tokens: 3000,
