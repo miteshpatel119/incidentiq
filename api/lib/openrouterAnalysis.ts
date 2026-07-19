@@ -365,10 +365,9 @@ function safeTimeframe(raw: unknown): 'Short Term' | 'Medium Term' | 'Long Term'
   return 'Short Term'
 }
 
-// Sanitize JSON content to handle malformed responses from LLM
-function sanitizeJsonContent(content: string): string {
+// Try to repair common JSON issues from LLM responses
+function repairJsonContent(content: string): string {
   // Try to extract JSON object from the content
-  // First, try to find a complete JSON object
   const jsonStart = content.indexOf('{')
   const jsonEnd = content.lastIndexOf('}')
 
@@ -378,8 +377,7 @@ function sanitizeJsonContent(content: string): string {
 
   let jsonContent = content.slice(jsonStart, jsonEnd + 1)
 
-  // Handle unterminated strings by escaping quotes that appear in strings
-  // Find strings that might have unescaped newlines or special characters
+  // Escape control characters within strings (newlines, tabs, carriage returns)
   let inString = false
   let escapeNext = false
   const result: string[] = []
@@ -406,7 +404,6 @@ function sanitizeJsonContent(content: string): string {
     }
 
     if (inString && (char === '\n' || char === '\r' || char === '\t')) {
-      // Escape control characters within strings
       result.push(char === '\n' ? '\\n' : char === '\r' ? '\\r' : '\\t')
       continue
     }
@@ -463,13 +460,13 @@ Analyze this incident and provide a complete root cause analysis with confidence
   }
 
   // Try multiple parsing strategies
-  const jsonContent = sanitizeJsonContent(content)
+  const jsonContent = repairJsonContent(content)
 
   try {
     return JSON.parse(jsonContent) as RCAResult
   } catch (parseError) {
-    // Try sanitizing and retry once
-    const sanitized = sanitizeJsonContent(jsonContent)
+    // Try repairing and retry once
+    const sanitized = repairJsonContent(jsonContent)
     try {
       return JSON.parse(sanitized) as RCAResult
     } catch {
