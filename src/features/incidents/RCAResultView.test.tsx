@@ -33,7 +33,11 @@ describe('RCAResultView', () => {
     confidenceAnalysis: {
       score: 87,
       reasoning: 'Multiple strong indicators point to database pool exhaustion as the root cause.',
-      supportingSignals: ['Configuration change detected', 'Connection pool metrics spike', 'Historical incident found'],
+      supportingSignals: [
+        'Configuration change detected',
+        'Connection pool metrics spike',
+        'Historical incident found',
+      ],
     },
     summary: 'Database pool was exhausted due to increased traffic and configuration change.',
     evidence: [
@@ -84,10 +88,19 @@ describe('RCAResultView', () => {
       sla: 'Enterprise checkout availability SLO breached',
       blastRadius: 'Order creation and payment capture in us-east-1',
     },
-    technicalImpact: 'Affected Service: orders-api\nInfrastructure Impact: production environment\nDependency Impact: PostgreSQL connection pool\nUser Impact: Service unavailable errors',
+    technicalImpact:
+      'Affected Service: orders-api\nInfrastructure Impact: production environment\nDependency Impact: PostgreSQL connection pool\nUser Impact: Service unavailable errors',
     remediation: [
-      { priority: 1, title: 'Immediate action', steps: ['Roll back the most recent configuration change', 'Restart affected services'] },
-      { priority: 2, title: 'Service recovery', steps: ['Verify health metrics', 'Monitor error rates'] },
+      {
+        priority: 1,
+        title: 'Immediate action',
+        steps: ['Roll back the most recent configuration change', 'Restart affected services'],
+      },
+      {
+        priority: 2,
+        title: 'Service recovery',
+        steps: ['Verify health metrics', 'Monitor error rates'],
+      },
     ],
     verificationSteps: [
       '✓ Verify service health endpoints return 200 OK',
@@ -95,8 +108,14 @@ describe('RCAResultView', () => {
       '✓ Check that all pods are in Running state',
     ],
     preventiveActions: [
-      { timeframe: 'Short Term', actions: ['Add automated canary analysis for configuration changes'] },
-      { timeframe: 'Medium Term', actions: ['Implement progressive rollout with automatic rollback'] },
+      {
+        timeframe: 'Short Term',
+        actions: ['Add automated canary analysis for configuration changes'],
+      },
+      {
+        timeframe: 'Medium Term',
+        actions: ['Implement progressive rollout with automatic rollback'],
+      },
       { timeframe: 'Long Term', actions: ['Capacity planning and optimization'] },
     ],
     codeFixes: [
@@ -128,8 +147,10 @@ describe('RCAResultView', () => {
     },
     postIncidentReport:
       '## Post-Incident Report\n\n### What happened\nDatabase pool exhausted.\n\n### Root cause\nPool configuration issue.\n\n### Impact\nAffected customers.\n\n### Action items\n1. Apply fixes\n2. Verify',
-    executiveSummary: 'Database pool exhausted due to configuration change. Service restored after rollback.',
-    incidentSeverityExplanation: 'Critical - Complete service unavailability requiring immediate attention.',
+    executiveSummary:
+      'Database pool exhausted due to configuration change. Service restored after rollback.',
+    incidentSeverityExplanation:
+      'Critical - Complete service unavailability requiring immediate attention.',
     lessonsLearned: [
       'Always restart pods after configuration changes',
       'Implement alerts before threshold breaches',

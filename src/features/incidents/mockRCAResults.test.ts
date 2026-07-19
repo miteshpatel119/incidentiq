@@ -79,7 +79,9 @@ describe('mockRCAResults', () => {
       const profile = getEnterpriseIncidentProfile('deployment-regression', Date.now())!
       const result = generateMockRCAResult('INC-TEST-007', profile)
 
-      const deploymentEvidence = result.evidence.filter((e) => e.title.toLowerCase().includes('deployment'))
+      const deploymentEvidence = result.evidence.filter((e) =>
+        e.title.toLowerCase().includes('deployment'),
+      )
       expect(deploymentEvidence.length).toBeGreaterThan(0)
       expect(deploymentEvidence[0].severity).toBe('critical')
     })
@@ -139,7 +141,7 @@ describe('mockRCAResults', () => {
 
       expect(result.verificationSteps.length).toBeGreaterThanOrEqual(3)
       // Verification steps now include checkmarks
-      expect(result.verificationSteps.some(s => s.includes('✓'))).toBe(true)
+      expect(result.verificationSteps.some((s) => s.includes('✓'))).toBe(true)
     })
 
     it('generates preventive actions', () => {

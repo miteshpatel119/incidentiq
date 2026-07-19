@@ -49,7 +49,15 @@ export interface TimelineEvent {
   readonly detail: string
   readonly type: 'error' | 'warning' | 'info' | 'change'
   readonly severity?: 'critical' | 'high' | 'medium' | 'low'
-  readonly category?: 'Change' | 'Deployment' | 'Metric' | 'Application Log' | 'Infrastructure Log' | 'Kubernetes Event' | 'Customer Impact' | 'Recovery'
+  readonly category?:
+    | 'Change'
+    | 'Deployment'
+    | 'Metric'
+    | 'Application Log'
+    | 'Infrastructure Log'
+    | 'Kubernetes Event'
+    | 'Customer Impact'
+    | 'Recovery'
 }
 
 export interface ConfidenceAnalysis {

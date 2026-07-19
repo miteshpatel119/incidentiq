@@ -14,7 +14,18 @@ import type {
 import type { EnterpriseIncidentProfile } from '@/features/incidents/mockEnterpriseData'
 
 // Valid AWS regions
-const AWS_REGIONS = ['us-east-1', 'us-east-2', 'us-west-1', 'us-west-2', 'eu-west-1', 'eu-west-2', 'eu-central-1', 'ap-southeast-1', 'ap-northeast-1', 'sa-east-1']
+const AWS_REGIONS = [
+  'us-east-1',
+  'us-east-2',
+  'us-west-1',
+  'us-west-2',
+  'eu-west-1',
+  'eu-west-2',
+  'eu-central-1',
+  'ap-southeast-1',
+  'ap-northeast-1',
+  'sa-east-1',
+]
 
 // Realistic estimated recovery times based on incident type
 const RECOVERY_TIMES: Record<string, string> = {
@@ -63,7 +74,8 @@ function generateTimeline(profile: EnterpriseIncidentProfile): readonly Timeline
   // Add kubernetes events
   for (const k8s of profile.kubernetesEvents) {
     const isError = k8s.reason === 'OOMKilled' || k8s.reason === 'Unhealthy'
-    const severity = k8s.reason === 'OOMKilled' ? 'critical' : k8s.reason === 'Unhealthy' ? 'high' : 'medium'
+    const severity =
+      k8s.reason === 'OOMKilled' ? 'critical' : k8s.reason === 'Unhealthy' ? 'high' : 'medium'
     timeline.push({
       timestamp: k8s.timestamp,
       event: `K8s ${k8s.reason}: ${k8s.resource}`,
@@ -89,7 +101,8 @@ function generateTimeline(profile: EnterpriseIncidentProfile): readonly Timeline
 
   // Add server logs
   for (const log of profile.serverLogs) {
-    const isError = log.message.includes('FATAL') || log.message.includes('OOM') || log.message.includes('killed')
+    const isError =
+      log.message.includes('FATAL') || log.message.includes('OOM') || log.message.includes('killed')
     timeline.push({
       timestamp: log.timestamp,
       event: `Server: ${log.host}`,
@@ -213,7 +226,7 @@ function generateEvidence(profile: EnterpriseIncidentProfile): readonly Evidence
 
   // Additional evidence for specific scenarios
   if (profile.scenarioKey === 'kubernetes-pod-crash') {
-    const memoryMetric = profile.metrics.find(m => m.name.includes('memory'))
+    const memoryMetric = profile.metrics.find((m) => m.name.includes('memory'))
     if (memoryMetric) {
       evidence.push({
         title: 'Memory utilization increased dramatically',
@@ -224,7 +237,7 @@ function generateEvidence(profile: EnterpriseIncidentProfile): readonly Evidence
       })
     }
 
-    const restartMetric = profile.metrics.find(m => m.name.includes('restart'))
+    const restartMetric = profile.metrics.find((m) => m.name.includes('restart'))
     if (restartMetric) {
       evidence.push({
         title: 'Pod restart count exceeded threshold',
@@ -235,7 +248,7 @@ function generateEvidence(profile: EnterpriseIncidentProfile): readonly Evidence
       })
     }
 
-    const lagMetric = profile.metrics.find(m => m.name.includes('lag'))
+    const lagMetric = profile.metrics.find((m) => m.name.includes('lag'))
     if (lagMetric) {
       evidence.push({
         title: `Consumer lag increased to ${lagMetric.peak.toLocaleString()}`,
@@ -249,7 +262,7 @@ function generateEvidence(profile: EnterpriseIncidentProfile): readonly Evidence
 
   // Evidence for database scenario
   if (profile.scenarioKey === 'database-primary-unavailable') {
-    const poolMetric = profile.metrics.find(m => m.name.includes('connections'))
+    const poolMetric = profile.metrics.find((m) => m.name.includes('connections'))
     if (poolMetric) {
       evidence.push({
         title: 'Database connection pool exhaustion',
@@ -263,7 +276,7 @@ function generateEvidence(profile: EnterpriseIncidentProfile): readonly Evidence
 
   // Evidence for message queue backlog
   if (profile.scenarioKey === 'message-queue-backlog') {
-    const throttleMetric = profile.metrics.find(m => m.name.includes('429'))
+    const throttleMetric = profile.metrics.find((m) => m.name.includes('429'))
     if (throttleMetric && throttleMetric.peak > 0) {
       evidence.push({
         title: 'Downstream API rate limiting detected',
@@ -284,13 +297,13 @@ function generateConfidenceAnalysis(profile: EnterpriseIncidentProfile): Confide
   if (profile.configurationChanges.length > 0) {
     signals.push('Configuration change detected before incident')
   }
-  if (profile.kubernetesEvents.some(k8s => k8s.reason === 'OOMKilled')) {
+  if (profile.kubernetesEvents.some((k8s) => k8s.reason === 'OOMKilled')) {
     signals.push('OOMKilled event in container logs')
   }
-  if (profile.applicationLogs.some(log => log.level === 'ERROR')) {
+  if (profile.applicationLogs.some((log) => log.level === 'ERROR')) {
     signals.push('Application error logs correlating with incident')
   }
-  if (profile.metrics.some(m => m.peak > m.baseline * 5)) {
+  if (profile.metrics.some((m) => m.peak > m.baseline * 5)) {
     signals.push('Significant metric anomaly detected')
   }
   if (profile.historicalIncidents.length > 0) {
@@ -351,7 +364,7 @@ function generateTechnicalImpact(profile: EnterpriseIncidentProfile): TechnicalI
   const infra = profile.infrastructure
 
   // Check for memory-related issues
-  const hasMemoryPressure = profile.kubernetesEvents.some(k8s => k8s.reason === 'OOMKilled')
+  const hasMemoryPressure = profile.kubernetesEvents.some((k8s) => k8s.reason === 'OOMKilled')
   const infraImpact = hasMemoryPressure
     ? `Memory exhaustion on ${infra.node} (AZ: ${infra.availabilityZone}). Container killed due to memory limit exceeded.`
     : `Resource constraints detected: CPU ${infra.cpuPercent}%, Memory ${infra.memoryPercent}% on ${infra.node}`
@@ -359,27 +372,34 @@ function generateTechnicalImpact(profile: EnterpriseIncidentProfile): TechnicalI
   return {
     affectedService: service,
     infrastructureImpact: `${env} environment - ${infraImpact}`,
-    dependencyImpact: profile.scenarioKey === 'database-primary-unavailable'
-      ? 'PostgreSQL primary database connection pool exhausted'
-      : profile.scenarioKey === 'payments-api-timeout'
-      ? 'External payment gateway experiencing latency/retry issues'
-      : profile.scenarioKey === 'kubernetes-pod-crash'
-      ? 'Event processing queue falling behind due to consumer crashes'
-      : profile.scenarioKey === 'deployment-regression'
-      ? 'Catalog service failing to transform price data'
-      : profile.scenarioKey === 'ssl-certificate-expiry'
-      ? 'TLS certificate expiration threatens API availability'
-      : profile.scenarioKey === 'configuration-change'
-      ? 'Identity service MFA policy blocking SAML partners'
-      : 'Message queue backlog affecting order processing',
-    userImpact: profile.scenarioKey === 'ssl-certificate-expiry'
-      ? 'No immediate impact - preventative alert only'
-      : `Users experiencing ${profile.scenarioKey === 'database-primary-unavailable' ? 'service unavailable errors' : 'delays and failures'} in affected region`,
+    dependencyImpact:
+      profile.scenarioKey === 'database-primary-unavailable'
+        ? 'PostgreSQL primary database connection pool exhausted'
+        : profile.scenarioKey === 'payments-api-timeout'
+          ? 'External payment gateway experiencing latency/retry issues'
+          : profile.scenarioKey === 'kubernetes-pod-crash'
+            ? 'Event processing queue falling behind due to consumer crashes'
+            : profile.scenarioKey === 'deployment-regression'
+              ? 'Catalog service failing to transform price data'
+              : profile.scenarioKey === 'ssl-certificate-expiry'
+                ? 'TLS certificate expiration threatens API availability'
+                : profile.scenarioKey === 'configuration-change'
+                  ? 'Identity service MFA policy blocking SAML partners'
+                  : 'Message queue backlog affecting order processing',
+    userImpact:
+      profile.scenarioKey === 'ssl-certificate-expiry'
+        ? 'No immediate impact - preventative alert only'
+        : `Users experiencing ${profile.scenarioKey === 'database-primary-unavailable' ? 'service unavailable errors' : 'delays and failures'} in affected region`,
   }
 }
 
-function generateRemediation(profile: EnterpriseIncidentProfile): readonly PrioritizedRemediation[] {
-  const remediationMap: Record<string, { priority1: string[], priority2: string[], priority3: string[], priority4: string[] }> = {
+function generateRemediation(
+  profile: EnterpriseIncidentProfile,
+): readonly PrioritizedRemediation[] {
+  const remediationMap: Record<
+    string,
+    { priority1: string[]; priority2: string[]; priority3: string[]; priority4: string[] }
+  > = {
     'database-primary-unavailable': {
       priority1: [
         `Scale down orders-api from ${profile.infrastructure.cpuPercent}% to reduce DB connection load`,
@@ -609,15 +629,19 @@ function generateVerificationSteps(profile: EnterpriseIncidentProfile): readonly
     ],
   }
 
-  return verificationMap[profile.scenarioKey] ?? [
-    'Verify service health endpoints return 200 OK',
-    'Confirm error rates return to baseline',
-    'Monitor metrics for 15 minutes',
-  ]
+  return (
+    verificationMap[profile.scenarioKey] ?? [
+      'Verify service health endpoints return 200 OK',
+      'Confirm error rates return to baseline',
+      'Monitor metrics for 15 minutes',
+    ]
+  )
 }
 
-function generatePreventiveActions(profile: EnterpriseIncidentProfile): readonly PreventiveAction[] {
-  const actionsMap: Record<string, { short: string[], medium: string[], long: string[] }> = {
+function generatePreventiveActions(
+  profile: EnterpriseIncidentProfile,
+): readonly PreventiveAction[] {
+  const actionsMap: Record<string, { short: string[]; medium: string[]; long: string[] }> = {
     'database-primary-unavailable': {
       short: [
         'Reduce batch size to safe defaults (200 records)',
@@ -763,31 +787,34 @@ function generateCodeFixes(profile: EnterpriseIncidentProfile): readonly CodeFix
       .replace(/const batchSize = (\d+)/g, 'const batchSize = Math.min($1, 200)')
       .replace(/regionalPrice\.currency/g, 'regionalPrice?.currency ?? price.currency'),
     explanation: `Add safety bounds, null checks, and defensive coding to prevent ${profile.scenarioKey === 'kubernetes-pod-crash' ? 'memory exhaustion' : profile.scenarioKey === 'deployment-regression' ? 'null reference errors' : 'unexpected failures'}.`,
-    why: profile.scenarioKey === 'kubernetes-pod-crash'
-      ? 'The batch size increase to 1000 caused unbounded memory allocation during Promise.all processing'
-      : profile.scenarioKey === 'deployment-regression'
-      ? 'Missing null guard for regionalPrice caused undefined property access on unconfigured items'
-      : 'Configuration and environment variable access lacks validation and bounds checking',
-    expectedImpact: profile.scenarioKey === 'kubernetes-pod-crash'
-      ? 'Memory usage will stay within container limits, preventing OOMKilled events'
-      : profile.scenarioKey === 'deployment-regression'
-      ? 'Null regional prices will fall back gracefully without errors'
-      : 'Improved stability and reduced failure rate',
-    risks: profile.scenarioKey === 'kubernetes-pod-crash'
-      ? [
-          'Throughput may decrease with smaller batch sizes',
-          'May require more worker replicas during peak',
-          'Latency impact for order processing',
-        ]
-      : profile.scenarioKey === 'deployment-regression'
-      ? [
-          'Fallback may not reflect actual regional pricing',
-          'Missing data might indicate configuration gaps',
-        ]
-      : [
-          'Minor performance impact from additional checks',
-          'Rollback may be needed if issues arise',
-        ],
+    why:
+      profile.scenarioKey === 'kubernetes-pod-crash'
+        ? 'The batch size increase to 1000 caused unbounded memory allocation during Promise.all processing'
+        : profile.scenarioKey === 'deployment-regression'
+          ? 'Missing null guard for regionalPrice caused undefined property access on unconfigured items'
+          : 'Configuration and environment variable access lacks validation and bounds checking',
+    expectedImpact:
+      profile.scenarioKey === 'kubernetes-pod-crash'
+        ? 'Memory usage will stay within container limits, preventing OOMKilled events'
+        : profile.scenarioKey === 'deployment-regression'
+          ? 'Null regional prices will fall back gracefully without errors'
+          : 'Improved stability and reduced failure rate',
+    risks:
+      profile.scenarioKey === 'kubernetes-pod-crash'
+        ? [
+            'Throughput may decrease with smaller batch sizes',
+            'May require more worker replicas during peak',
+            'Latency impact for order processing',
+          ]
+        : profile.scenarioKey === 'deployment-regression'
+          ? [
+              'Fallback may not reflect actual regional pricing',
+              'Missing data might indicate configuration gaps',
+            ]
+          : [
+              'Minor performance impact from additional checks',
+              'Rollback may be needed if issues arise',
+            ],
   }))
 }
 
@@ -798,9 +825,10 @@ function generateConfigFixes(profile: EnterpriseIncidentProfile): readonly Confi
     after: cfg.before,
     explanation: `Revert ${cfg.key} from "${cfg.after}" back to "${cfg.before}" to restore stable configuration.`,
     rollbackRecommendation: `Execute rollback via change request ${formatChangeRequestId(cfg.changeRequest)} or manually revert in configuration management system.`,
-    expectedImpact: cfg.key.includes('BATCH_SIZE') || cfg.key.includes('CONCURRENCY')
-      ? 'Resource utilization returns to safe levels, preventing OOM conditions'
-      : 'Configuration returns to previously stable state',
+    expectedImpact:
+      cfg.key.includes('BATCH_SIZE') || cfg.key.includes('CONCURRENCY')
+        ? 'Resource utilization returns to safe levels, preventing OOM conditions'
+        : 'Configuration returns to previously stable state',
     rollbackRisk: 'Low - reverting to proven stable value',
     validationSteps: [
       'Monitor application logs for errors after rollback',
@@ -875,22 +903,40 @@ function generateExecutiveSummary(profile: EnterpriseIncidentProfile): string {
     'message-queue-backlog': `Order processing backlog exceeded 184,000 messages after concurrency increase overwhelmed inventory API. ${customers} delayed. Concurrency reduced and scaling applied. Estimated recovery: ${recoveryTime}.`,
   }
 
-  return summaryMap[profile.scenarioKey] ?? `Service incident in ${service} at ${region}. Investigation ongoing with remediation in progress.`
+  return (
+    summaryMap[profile.scenarioKey] ??
+    `Service incident in ${service} at ${region}. Investigation ongoing with remediation in progress.`
+  )
 }
 
 function generateSeverityExplanation(profile: EnterpriseIncidentProfile): string {
   const severityMap: Record<string, string> = {
-    'database-primary-unavailable': 'Critical - Complete service unavailability with customer-facing errors and revenue at risk.',
-    'payments-api-timeout': 'Critical - Payment failures directly impact revenue and customer transactions.',
-    'kubernetes-pod-crash': 'High - Service degradation affecting order processing, though no outright rejections.',
-    'deployment-regression': 'High - Feature regression causing errors but with fallback mechanisms available.',
-    'ssl-certificate-expiry': 'Critical - Preventative alert for potential complete service outage affecting all customers.',
-    'configuration-change': 'High - Authentication failures blocking partner access but not customer checkout.',
-    'message-queue-backlog': 'High - Processing delays affecting customer experience but with no immediate errors.',
+    'database-primary-unavailable':
+      'Critical - Complete service unavailability with customer-facing errors and revenue at risk.',
+    'payments-api-timeout':
+      'Critical - Payment failures directly impact revenue and customer transactions.',
+    'kubernetes-pod-crash':
+      'High - Service degradation affecting order processing, though no outright rejections.',
+    'deployment-regression':
+      'High - Feature regression causing errors but with fallback mechanisms available.',
+    'ssl-certificate-expiry':
+      'Critical - Preventative alert for potential complete service outage affecting all customers.',
+    'configuration-change':
+      'High - Authentication failures blocking partner access but not customer checkout.',
+    'message-queue-backlog':
+      'High - Processing delays affecting customer experience but with no immediate errors.',
   }
 
-  const baseSeverity = profile.scenarioKey.includes('ssl') || profile.scenarioKey.includes('database') || profile.scenarioKey.includes('payments') ? 'Critical' : 'High'
-  return severityMap[profile.scenarioKey] ?? `${baseSeverity} - Service impact detected requiring immediate attention.`
+  const baseSeverity =
+    profile.scenarioKey.includes('ssl') ||
+    profile.scenarioKey.includes('database') ||
+    profile.scenarioKey.includes('payments')
+      ? 'Critical'
+      : 'High'
+  return (
+    severityMap[profile.scenarioKey] ??
+    `${baseSeverity} - Service impact detected requiring immediate attention.`
+  )
 }
 
 function generateLessonsLearned(profile: EnterpriseIncidentProfile): readonly string[] {
@@ -946,13 +992,15 @@ function generateLessonsLearned(profile: EnterpriseIncidentProfile): readonly st
     ],
   }
 
-  return lessonsMap[profile.scenarioKey] ?? [
-    'Implement comprehensive monitoring for configuration changes',
-    'Add automated rollback for critical failures',
-    'Document incident response procedures',
-    'Conduct post-mortem analysis for all incidents',
-    'Update runbooks with new failure patterns',
-  ]
+  return (
+    lessonsMap[profile.scenarioKey] ?? [
+      'Implement comprehensive monitoring for configuration changes',
+      'Add automated rollback for critical failures',
+      'Document incident response procedures',
+      'Conduct post-mortem analysis for all incidents',
+      'Update runbooks with new failure patterns',
+    ]
+  )
 }
 
 export function generateMockRCAResult(
@@ -1055,7 +1103,7 @@ ${legacyTechnicalImpact}
 
 ### Confidence Score: ${confidenceAnalysis.score}%
 Supporting signals:
-${confidenceAnalysis.supportingSignals.map(s => `- ${s}`).join('\n')}
+${confidenceAnalysis.supportingSignals.map((s) => `- ${s}`).join('\n')}
 
 ### Timeline
 Key events leading to the incident have been reconstructed from logs, metrics, and deployment records.

@@ -40,7 +40,7 @@ interface RCAResultViewProps {
 
 function ConfidenceMeter({
   score,
-  supportingSignals
+  supportingSignals,
 }: {
   readonly score: number
   readonly supportingSignals?: readonly string[]
@@ -85,11 +85,13 @@ function ConfidenceMeter({
       </div>
       {supportingSignals && supportingSignals.length > 0 ? (
         <div className="mt-3 border-t border-border pt-3">
-          <p className="text-[10px] font-medium uppercase text-muted-foreground mb-1">Supporting signals</p>
+          <p className="mb-1 text-[10px] font-medium uppercase text-muted-foreground">
+            Supporting signals
+          </p>
           <ul className="space-y-0.5">
             {supportingSignals.map((signal, index) => (
-              <li className="text-[10px] text-muted-foreground flex items-center gap-1" key={index}>
-                <span className="w-1 h-1 bg-emerald-400 rounded-full" />
+              <li className="flex items-center gap-1 text-[10px] text-muted-foreground" key={index}>
+                <span className="h-1 w-1 rounded-full bg-emerald-400" />
                 {signal}
               </li>
             ))}
@@ -116,7 +118,7 @@ function EvidenceCard({ evidence }: { readonly evidence: readonly EvidenceItem[]
               <p className="text-sm font-medium">{item.title}</p>
               <div className="flex items-center gap-1">
                 {item.confidence !== undefined ? (
-                  <span className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium bg-primary/10 text-primary">
+                  <span className="shrink-0 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">
                     {item.confidence}%
                   </span>
                 ) : null}
@@ -208,7 +210,9 @@ function TimelineCard({ timeline }: { readonly timeline: readonly TimelineEvent[
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 {typeIcons[event.type] ?? <Clock className="h-3.5 w-3.5 text-muted-foreground" />}
-                <span className="font-mono text-[10px] text-muted-foreground">{event.timestamp}</span>
+                <span className="font-mono text-[10px] text-muted-foreground">
+                  {event.timestamp}
+                </span>
               </div>
               {event.category ? (
                 <span className="text-[10px] text-muted-foreground/60" title={event.category}>
@@ -216,16 +220,21 @@ function TimelineCard({ timeline }: { readonly timeline: readonly TimelineEvent[
                 </span>
               ) : null}
             </div>
-            <div className="flex items-center justify-between mt-1">
+            <div className="mt-1 flex items-center justify-between">
               <p className="text-sm font-medium">{event.event}</p>
               {event.severity ? (
-                <span className={cn(
-                  'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium uppercase',
-                  event.severity === 'critical' ? 'bg-rose-500/15 text-rose-700' :
-                  event.severity === 'high' ? 'bg-amber-500/15 text-amber-700' :
-                  event.severity === 'medium' ? 'bg-primary/15 text-primary' :
-                  'bg-slate-500/15 text-slate-700',
-                )}>
+                <span
+                  className={cn(
+                    'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium uppercase',
+                    event.severity === 'critical'
+                      ? 'bg-rose-500/15 text-rose-700'
+                      : event.severity === 'high'
+                        ? 'bg-amber-500/15 text-amber-700'
+                        : event.severity === 'medium'
+                          ? 'bg-primary/15 text-primary'
+                          : 'bg-slate-500/15 text-slate-700',
+                  )}
+                >
                   {event.severity}
                 </span>
               ) : null}
@@ -400,7 +409,14 @@ function CommandsCard({ commands }: { readonly commands: readonly string[] }): J
 }
 
 function KubectlCommandsCard({ commands }: { readonly commands: KubectlCommands }): JSX.Element {
-  if (!commands || (!commands.investigation.length && !commands.recovery.length && !commands.verification.length && !commands.monitoring.length)) return <></>
+  if (
+    !commands ||
+    (!commands.investigation.length &&
+      !commands.recovery.length &&
+      !commands.verification.length &&
+      !commands.monitoring.length)
+  )
+    return <></>
 
   return (
     <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
@@ -411,10 +427,15 @@ function KubectlCommandsCard({ commands }: { readonly commands: KubectlCommands 
       <div className="space-y-4">
         {commands.investigation.length > 0 ? (
           <div>
-            <p className="text-[10px] font-medium uppercase text-muted-foreground mb-2">Investigation</p>
+            <p className="mb-2 text-[10px] font-medium uppercase text-muted-foreground">
+              Investigation
+            </p>
             <div className="space-y-2">
               {commands.investigation.map((cmd, i) => (
-                <div className="flex items-center justify-between rounded-lg bg-[#0d1117] px-3 py-2" key={i}>
+                <div
+                  className="flex items-center justify-between rounded-lg bg-[#0d1117] px-3 py-2"
+                  key={i}
+                >
                   <code className="text-xs text-emerald-300">{cmd}</code>
                   <button onClick={() => void navigator.clipboard.writeText(cmd)} type="button">
                     <Copy className="h-3.5 w-3.5 text-muted-foreground" />
@@ -426,10 +447,13 @@ function KubectlCommandsCard({ commands }: { readonly commands: KubectlCommands 
         ) : null}
         {commands.recovery.length > 0 ? (
           <div>
-            <p className="text-[10px] font-medium uppercase text-muted-foreground mb-2">Recovery</p>
+            <p className="mb-2 text-[10px] font-medium uppercase text-muted-foreground">Recovery</p>
             <div className="space-y-2">
               {commands.recovery.map((cmd, i) => (
-                <div className="flex items-center justify-between rounded-lg bg-[#0d1117] px-3 py-2" key={i}>
+                <div
+                  className="flex items-center justify-between rounded-lg bg-[#0d1117] px-3 py-2"
+                  key={i}
+                >
                   <code className="text-xs text-emerald-300">{cmd}</code>
                   <button onClick={() => void navigator.clipboard.writeText(cmd)} type="button">
                     <Copy className="h-3.5 w-3.5 text-muted-foreground" />
@@ -441,10 +465,15 @@ function KubectlCommandsCard({ commands }: { readonly commands: KubectlCommands 
         ) : null}
         {commands.verification.length > 0 ? (
           <div>
-            <p className="text-[10px] font-medium uppercase text-muted-foreground mb-2">Verification</p>
+            <p className="mb-2 text-[10px] font-medium uppercase text-muted-foreground">
+              Verification
+            </p>
             <div className="space-y-2">
               {commands.verification.map((cmd, i) => (
-                <div className="flex items-center justify-between rounded-lg bg-[#0d1117] px-3 py-2" key={i}>
+                <div
+                  className="flex items-center justify-between rounded-lg bg-[#0d1117] px-3 py-2"
+                  key={i}
+                >
                   <code className="text-xs text-emerald-300">{cmd}</code>
                   <button onClick={() => void navigator.clipboard.writeText(cmd)} type="button">
                     <Copy className="h-3.5 w-3.5 text-muted-foreground" />
@@ -456,10 +485,15 @@ function KubectlCommandsCard({ commands }: { readonly commands: KubectlCommands 
         ) : null}
         {commands.monitoring.length > 0 ? (
           <div>
-            <p className="text-[10px] font-medium uppercase text-muted-foreground mb-2">Monitoring</p>
+            <p className="mb-2 text-[10px] font-medium uppercase text-muted-foreground">
+              Monitoring
+            </p>
             <div className="space-y-2">
               {commands.monitoring.map((cmd, i) => (
-                <div className="flex items-center justify-between rounded-lg bg-[#0d1117] px-3 py-2" key={i}>
+                <div
+                  className="flex items-center justify-between rounded-lg bg-[#0d1117] px-3 py-2"
+                  key={i}
+                >
                   <code className="text-xs text-emerald-300">{cmd}</code>
                   <button onClick={() => void navigator.clipboard.writeText(cmd)} type="button">
                     <Copy className="h-3.5 w-3.5 text-muted-foreground" />
@@ -483,7 +517,9 @@ function BusinessImpactCard({ impact }: { impact: RCAResult['businessImpact'] })
       </h3>
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-lg bg-secondary/20 p-3">
-          <p className="text-[10px] font-medium uppercase text-muted-foreground">Customers affected</p>
+          <p className="text-[10px] font-medium uppercase text-muted-foreground">
+            Customers affected
+          </p>
           <p className="mt-1 text-sm font-semibold">{impact.customersAffected}</p>
         </div>
         <div className="rounded-lg bg-secondary/20 p-3">
@@ -503,7 +539,11 @@ function BusinessImpactCard({ impact }: { impact: RCAResult['businessImpact'] })
   )
 }
 
-function RemediationCard({ remediation }: { readonly remediation: readonly PrioritizedRemediation[] }): JSX.Element {
+function RemediationCard({
+  remediation,
+}: {
+  readonly remediation: readonly PrioritizedRemediation[]
+}): JSX.Element {
   if (!remediation || remediation.length === 0) return <></>
 
   return (
@@ -515,21 +555,28 @@ function RemediationCard({ remediation }: { readonly remediation: readonly Prior
       <div className="space-y-4">
         {remediation.map((r) => (
           <div key={r.priority} className="rounded-lg border border-border/50 bg-secondary/20 p-3">
-            <div className="flex items-center gap-2 mb-2">
-              <span className={cn(
-                'flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold',
-                r.priority === 1 ? 'bg-rose-500/20 text-rose-700' :
-                r.priority === 2 ? 'bg-amber-500/20 text-amber-700' :
-                r.priority === 3 ? 'bg-emerald-500/20 text-emerald-700' :
-                'bg-primary/20 text-primary'
-              )}>
+            <div className="mb-2 flex items-center gap-2">
+              <span
+                className={cn(
+                  'flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold',
+                  r.priority === 1
+                    ? 'bg-rose-500/20 text-rose-700'
+                    : r.priority === 2
+                      ? 'bg-amber-500/20 text-amber-700'
+                      : r.priority === 3
+                        ? 'bg-emerald-500/20 text-emerald-700'
+                        : 'bg-primary/20 text-primary',
+                )}
+              >
                 {r.priority}
               </span>
               <p className="text-sm font-medium">{r.title}</p>
             </div>
             <ul className="space-y-1 pl-8">
               {r.steps.map((step, i) => (
-                <li className="text-xs text-muted-foreground" key={i}>• {step}</li>
+                <li className="text-xs text-muted-foreground" key={i}>
+                  • {step}
+                </li>
               ))}
             </ul>
           </div>
@@ -539,7 +586,11 @@ function RemediationCard({ remediation }: { readonly remediation: readonly Prior
   )
 }
 
-function PreventiveActionsCard({ actions }: { readonly actions: readonly PreventiveAction[] }): JSX.Element {
+function PreventiveActionsCard({
+  actions,
+}: {
+  readonly actions: readonly PreventiveAction[]
+}): JSX.Element {
   if (!actions || actions.length === 0) return <></>
 
   return (
@@ -551,16 +602,24 @@ function PreventiveActionsCard({ actions }: { readonly actions: readonly Prevent
       <div className="space-y-4">
         {actions.map((a, index) => (
           <div key={index}>
-            <p className={cn(
-              'text-xs font-semibold uppercase mb-2',
-              a.timeframe === 'Short Term' ? 'text-rose-600' :
-              a.timeframe === 'Medium Term' ? 'text-amber-600' :
-              'text-emerald-600'
-            )}>{a.timeframe}</p>
+            <p
+              className={cn(
+                'mb-2 text-xs font-semibold uppercase',
+                a.timeframe === 'Short Term'
+                  ? 'text-rose-600'
+                  : a.timeframe === 'Medium Term'
+                    ? 'text-amber-600'
+                    : 'text-emerald-600',
+              )}
+            >
+              {a.timeframe}
+            </p>
             {a.actions && a.actions.length > 0 ? (
               <ul className="space-y-1 pl-4">
                 {a.actions.map((action, i) => (
-                  <li className="text-xs text-muted-foreground" key={i}>• {action}</li>
+                  <li className="text-xs text-muted-foreground" key={i}>
+                    • {action}
+                  </li>
                 ))}
               </ul>
             ) : null}
@@ -633,13 +692,19 @@ export function RCAResultView({ result, incidentId }: RCAResultViewProps): JSX.E
   }, [])
 
   const handleDownloadPDF = useCallback(() => {
-    const remediationText = result.remediation && result.remediation.length > 0
-      ? result.remediation.map(r => `${r.priority}. ${r.title}: ${r.steps.join(', ')}`).join('\n')
-      : ''
+    const remediationText =
+      result.remediation && result.remediation.length > 0
+        ? result.remediation
+            .map((r) => `${r.priority}. ${r.title}: ${r.steps.join(', ')}`)
+            .join('\n')
+        : ''
 
-    const preventiveText = result.preventiveActions && result.preventiveActions.length > 0
-      ? result.preventiveActions.flatMap(a => a.actions.map(s => `[${a.timeframe}] ${s}`)).join('\n')
-      : ''
+    const preventiveText =
+      result.preventiveActions && result.preventiveActions.length > 0
+        ? result.preventiveActions
+            .flatMap((a) => a.actions.map((s) => `[${a.timeframe}] ${s}`))
+            .join('\n')
+        : ''
 
     const content = `
 INCIDENT IQ - ROOT CAUSE ANALYSIS

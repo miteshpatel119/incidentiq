@@ -31,7 +31,9 @@ describe('normalizeOpenRouterResult', () => {
           },
         ],
         verificationSteps: ['Check pool metrics', 'Verify error rate'],
-        preventiveActions: [{ timeframe: 'Short Term', actions: ['Add autoscaling for connection pool'] }],
+        preventiveActions: [
+          { timeframe: 'Short Term', actions: ['Add autoscaling for connection pool'] },
+        ],
         recommendedCommands: ['kubectl top pods'],
         postIncidentReport: '## Post-Incident Report\n\n### What happened\nHigh traffic.',
       },

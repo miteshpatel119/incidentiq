@@ -152,7 +152,7 @@ function extractString(value: unknown): string {
 
 function extractStringArray(value: unknown): readonly string[] {
   if (!Array.isArray(value)) return []
-  return value.map(extractString).filter(s => s.length > 0)
+  return value.map(extractString).filter((s) => s.length > 0)
 }
 
 export function normalizeOpenRouterResult(raw: unknown): RCAResult {
@@ -198,9 +198,8 @@ export function normalizeOpenRouterResult(raw: unknown): RCAResult {
   const timelineEntries = Array.isArray(data.timeline) ? (data.timeline as MaybeObject[]) : []
   const timeline: TimelineItem[] = timelineEntries.map((entry) => {
     const typeRaw = typeof entry.type === 'string' ? entry.type.trim() : 'info'
-    const type = (['error', 'warning', 'info', 'change'].includes(typeRaw)
-      ? typeRaw
-      : 'info') as 'error' | 'warning' | 'info' | 'change'
+    const type = (['error', 'warning', 'info', 'change'].includes(typeRaw) ? typeRaw : 'info') as
+      'error' | 'warning' | 'info' | 'change'
 
     return {
       timestamp: typeof entry.timestamp === 'string' ? entry.timestamp.trim() : '',
@@ -238,17 +237,18 @@ export function normalizeOpenRouterResult(raw: unknown): RCAResult {
 
   // Generate remediation
   const remediation = Array.isArray(analysis.remediation)
-    ? (analysis.remediation as Array<MaybeObject>)
-        .map((r) => ({
-          priority: Number(r.priority ?? 1),
-          title: extractString(r.title ?? 'Action'),
-          steps: extractStringArray(r.steps),
-        }))
-    : [{
-        priority: 1,
-        title: 'Immediate action',
-        steps: ['Investigate the root cause', 'Apply appropriate fix'],
-      }]
+    ? (analysis.remediation as Array<MaybeObject>).map((r) => ({
+        priority: Number(r.priority ?? 1),
+        title: extractString(r.title ?? 'Action'),
+        steps: extractStringArray(r.steps),
+      }))
+    : [
+        {
+          priority: 1,
+          title: 'Immediate action',
+          steps: ['Investigate the root cause', 'Apply appropriate fix'],
+        },
+      ]
 
   const technicalImpact =
     getString(techDetails, ['errorLogs']) ||
@@ -258,15 +258,23 @@ export function normalizeOpenRouterResult(raw: unknown): RCAResult {
 
   const verificationSteps = Array.isArray(data.verificationSteps)
     ? (data.verificationSteps as readonly string[])
-    : ['✓ Verify service health endpoints return 200 OK', '✓ Confirm error rates return to baseline', '✓ Monitor metrics for 15 minutes']
+    : [
+        '✓ Verify service health endpoints return 200 OK',
+        '✓ Confirm error rates return to baseline',
+        '✓ Monitor metrics for 15 minutes',
+      ]
 
   const preventiveActions = Array.isArray(data.preventiveActions)
-    ? (data.preventiveActions as Array<MaybeObject>)
-        .map((a) => ({
-          timeframe: safeTimeframe(a.timeframe),
-          actions: extractStringArray(a.actions),
-        }))
-    : [{ timeframe: 'Short Term' as const, actions: ['Add monitoring coverage for the affected service'] }]
+    ? (data.preventiveActions as Array<MaybeObject>).map((a) => ({
+        timeframe: safeTimeframe(a.timeframe),
+        actions: extractStringArray(a.actions),
+      }))
+    : [
+        {
+          timeframe: 'Short Term' as const,
+          actions: ['Add monitoring coverage for the affected service'],
+        },
+      ]
 
   const rawCodeFixes = Array.isArray(analysis.codeFixes)
     ? (analysis.codeFixes as Array<MaybeObject>)
