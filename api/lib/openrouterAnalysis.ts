@@ -31,6 +31,7 @@ export interface KubectlCommands {
 }
 
 export interface RCAResult {
+  readonly analysisSource?: 'openrouter' | 'mock-fallback'
   readonly rootCause: string
   readonly confidenceScore: number
   readonly confidenceAnalysis?: {
@@ -155,47 +156,76 @@ function extractStringArray(value: unknown): readonly string[] {
   return value.map(extractString).filter((s) => s.length > 0)
 }
 
-export function normalizeOpenRouterResult(raw: unknown): RCAResult {
-  const data = typeof raw === 'object' && raw !== null ? (raw as MaybeObject) : {}
-  const analysis = (data.rootCauseAnalysis as MaybeObject | undefined) ?? data
-  const techDetails = (analysis.technicalDetails as MaybeObject | undefined) ?? {}
+function getObject(value: unknown): MaybeObject {
+  return typeof value === 'object' && value !== null ? (value as MaybeObject) : {}
+}
 
-  const rawBusinessImpact = (analysis.businessImpact ?? data.businessImpact ?? {}) as MaybeObject
+function getArray(...values: readonly unknown[]): readonly unknown[] {
+  for (const value of values) {
+    if (Array.isArray(value)) return value
+  }
+  return []
+}
+
+function getStringFrom(obj: MaybeObject, keys: readonly string[]): string {
+  for (const key of keys) {
+    const value = obj[key]
+    const extracted = extractString(value)
+    if (extracted.length > 0) return extracted
+  }
+  return ''
+}
+
+function safeConfidenceScore(value: unknown): number {
+  const score = Number(value)
+  if (!Number.isFinite(score)) return 85
+  return Math.min(100, Math.max(0, Math.round(score)))
+}
+
+export function normalizeOpenRouterResult(raw: unknown): RCAResult {
+  const data = getObject(raw)
+  const analysis =
+    Object.keys(getObject(data.rootCauseAnalysis)).length > 0
+      ? getObject(data.rootCauseAnalysis)
+      : data
+  const techDetails = getObject(analysis.technicalDetails)
+
+  const rawBusinessImpact = getObject(analysis.businessImpact ?? data.businessImpact)
 
   const businessImpact = {
-    customersAffected: extractString(rawBusinessImpact.customersAffected),
-    revenueAtRisk: extractString(rawBusinessImpact.revenueAtRisk),
-    sla: extractString(rawBusinessImpact.sla),
-    blastRadius: extractString(rawBusinessImpact.blastRadius),
+    customersAffected: getStringFrom(rawBusinessImpact, ['customersAffected', 'usersAffected']),
+    revenueAtRisk: getStringFrom(rawBusinessImpact, ['revenueAtRisk', 'revenueImpact']),
+    sla: getStringFrom(rawBusinessImpact, ['sla', 'slaImpact']),
+    blastRadius: getStringFrom(rawBusinessImpact, ['blastRadius', 'operationalImpact']),
   }
 
-  const remediationSteps = Array.isArray(analysis.remediationSteps)
-    ? (analysis.remediationSteps as Array<MaybeObject>)
-    : Array.isArray(analysis.remediation)
-      ? (analysis.remediation as Array<MaybeObject>)
-      : []
+  const remediationSteps = getArray(analysis.remediationSteps, analysis.remediation)
+    .map(getObject)
+    .filter((step) => Object.keys(step).length > 0)
 
-  // Generate evidence
-  const evidence: EvidenceItem[] = Array.isArray(analysis.evidence)
-    ? (analysis.evidence as Array<MaybeObject>)
-        .filter((e) => typeof e.title === 'string')
-        .map((e) => ({
-          title: extractString(e.title),
-          description: extractString(e.description ?? e.detail ?? ''),
-          source: extractString(e.source ?? 'Analysis'),
-          severity: safeSeverity(e.severity),
-        }))
-    : remediationSteps
-        .filter((step) => typeof step.action === 'string' && typeof step.description === 'string')
-        .map((step, index) => ({
-          title: extractString(step.action),
-          description: extractString(step.description),
-          source: `Remediation step ${index + 1}`,
-          severity: step.urgency === 'Immediate' ? 'critical' : 'supporting',
-        }))
+  const rawEvidence = getArray(analysis.evidence, data.evidence)
+  const evidence: EvidenceItem[] =
+    rawEvidence.length > 0
+      ? rawEvidence
+          .map(getObject)
+          .filter((e) => typeof e.title === 'string')
+          .map((e) => ({
+            title: extractString(e.title),
+            description: extractString(e.description ?? e.detail ?? ''),
+            source: extractString(e.source ?? 'Analysis'),
+            severity: safeSeverity(e.severity),
+            confidence: safeOptionalConfidence(e.confidence),
+          }))
+      : remediationSteps
+          .filter((step) => typeof step.action === 'string' && typeof step.description === 'string')
+          .map((step, index) => ({
+            title: extractString(step.action),
+            description: extractString(step.description),
+            source: `Remediation step ${index + 1}`,
+            severity: step.urgency === 'Immediate' ? 'critical' : 'supporting',
+          }))
 
-  // Generate timeline
-  const timelineEntries = Array.isArray(data.timeline) ? (data.timeline as MaybeObject[]) : []
+  const timelineEntries = getArray(analysis.timeline, data.timeline).map(getObject)
   const timeline: TimelineItem[] = timelineEntries.map((entry) => {
     const typeRaw = typeof entry.type === 'string' ? entry.type.trim() : 'info'
     const type = (['error', 'warning', 'info', 'change'].includes(typeRaw) ? typeRaw : 'info') as
@@ -219,68 +249,68 @@ export function normalizeOpenRouterResult(raw: unknown): RCAResult {
     }
   })
 
-  const getString = (obj: MaybeObject, keys: string[]): string => {
-    for (const key of keys) {
-      const val = obj[key]
-      if (typeof val === 'string') return val.trim()
-      if (typeof val === 'object' && val !== null) {
-        return extractString(val)
-      }
-    }
-    return ''
-  }
-
   const rootCause =
-    getString(analysis, ['rootCause', 'problemStatement']) || getString(data, ['rootCause']) || ''
+    getStringFrom(analysis, ['rootCause', 'problemStatement']) ||
+    getStringFrom(data, ['rootCause']) ||
+    ''
   const normalizedRootCause = extractString(rootCause) || ''
-  const summary = getString(analysis, ['summary']) || getString(data, ['summary']) || ''
+  const summary = getStringFrom(analysis, ['summary']) || getStringFrom(data, ['summary']) || ''
 
-  // Generate remediation
-  const remediation = Array.isArray(analysis.remediation)
-    ? (analysis.remediation as Array<MaybeObject>).map((r) => ({
-        priority: Number(r.priority ?? 1),
-        title: extractString(r.title ?? 'Action'),
-        steps: extractStringArray(r.steps),
-      }))
-    : [
-        {
-          priority: 1,
-          title: 'Immediate action',
-          steps: ['Investigate the root cause', 'Apply appropriate fix'],
-        },
-      ]
+  const remediation =
+    remediationSteps.length > 0
+      ? remediationSteps.map((r) => ({
+          priority: Number(r.priority ?? 1),
+          title: extractString(r.title ?? r.action ?? 'Action'),
+          steps:
+            extractStringArray(r.steps).length > 0
+              ? extractStringArray(r.steps)
+              : [extractString(r.description)].filter((step) => step.length > 0),
+        }))
+      : [
+          {
+            priority: 1,
+            title: 'Immediate action',
+            steps: ['Investigate the root cause', 'Apply appropriate fix'],
+          },
+        ]
 
   const technicalImpact =
-    getString(techDetails, ['errorLogs']) ||
-    getString(data, ['technicalImpact']) ||
+    getStringFrom(techDetails, ['errorLogs', 'summary']) ||
+    getStringFrom(analysis, ['technicalImpact']) ||
+    getStringFrom(data, ['technicalImpact']) ||
     summary ||
     'Investigation completed.'
 
-  const verificationSteps = Array.isArray(data.verificationSteps)
-    ? (data.verificationSteps as readonly string[])
-    : [
-        '✓ Verify service health endpoints return 200 OK',
-        '✓ Confirm error rates return to baseline',
-        '✓ Monitor metrics for 15 minutes',
-      ]
+  const verificationSteps = extractStringArray(
+    getArray(analysis.verificationSteps, data.verificationSteps),
+  )
+  const normalizedVerificationSteps =
+    verificationSteps.length > 0
+      ? verificationSteps
+      : [
+          '✓ Verify service health endpoints return 200 OK',
+          '✓ Confirm error rates return to baseline',
+          '✓ Monitor metrics for 15 minutes',
+        ]
 
-  const preventiveActions = Array.isArray(data.preventiveActions)
-    ? (data.preventiveActions as Array<MaybeObject>).map((a) => ({
-        timeframe: safeTimeframe(a.timeframe),
-        actions: extractStringArray(a.actions),
-      }))
-    : [
-        {
-          timeframe: 'Short Term' as const,
-          actions: ['Add monitoring coverage for the affected service'],
-        },
-      ]
+  const preventiveActionEntries = getArray(analysis.preventiveActions, data.preventiveActions)
+  const preventiveActions =
+    preventiveActionEntries.length > 0
+      ? preventiveActionEntries.map(getObject).map((a) => ({
+          timeframe: safeTimeframe(a.timeframe),
+          actions:
+            extractStringArray(a.actions).length > 0
+              ? extractStringArray(a.actions)
+              : [extractString(a.action ?? a.description)].filter((action) => action.length > 0),
+        }))
+      : [
+          {
+            timeframe: 'Short Term' as const,
+            actions: ['Add monitoring coverage for the affected service'],
+          },
+        ]
 
-  const rawCodeFixes = Array.isArray(analysis.codeFixes)
-    ? (analysis.codeFixes as Array<MaybeObject>)
-    : Array.isArray(data.codeFixes)
-      ? (data.codeFixes as Array<MaybeObject>)
-      : []
+  const rawCodeFixes = getArray(analysis.codeFixes, data.codeFixes).map(getObject)
 
   const codeFixes = rawCodeFixes
     .filter((fix) => typeof fix.file === 'string' && typeof fix.language === 'string')
@@ -292,11 +322,7 @@ export function normalizeOpenRouterResult(raw: unknown): RCAResult {
       explanation: typeof fix.explanation === 'string' ? fix.explanation.trim() : '',
     }))
 
-  const rawConfigFixes = Array.isArray(analysis.configFixes)
-    ? (analysis.configFixes as Array<MaybeObject>)
-    : Array.isArray(data.configFixes)
-      ? (data.configFixes as Array<MaybeObject>)
-      : []
+  const rawConfigFixes = getArray(analysis.configFixes, data.configFixes).map(getObject)
 
   const configFixes = rawConfigFixes
     .filter((fix) => typeof fix.key === 'string')
@@ -307,11 +333,16 @@ export function normalizeOpenRouterResult(raw: unknown): RCAResult {
       explanation: typeof fix.explanation === 'string' ? fix.explanation.trim() : '',
     }))
 
-  const recommendedCommands = Array.isArray(analysis.recommendedCommands)
-    ? (analysis.recommendedCommands as readonly string[])
-    : Array.isArray(data.recommendedCommands)
-      ? (data.recommendedCommands as readonly string[])
-      : []
+  const recommendedCommands = extractStringArray(
+    getArray(analysis.recommendedCommands, data.recommendedCommands),
+  )
+
+  const confidenceAnalysis = normalizeConfidenceAnalysis(
+    analysis.confidenceAnalysis ?? data.confidenceAnalysis,
+    analysis.confidenceScore ?? data.confidenceScore,
+  )
+
+  const kubectlCommands = normalizeKubectlCommands(analysis.kubectlCommands ?? data.kubectlCommands)
 
   const postIncidentReport = extractString(
     analysis.postIncidentReport ??
@@ -333,22 +364,42 @@ ${extractString(businessImpact.customersAffected)} affected, ${extractString(bus
 3. Update monitoring and alerts`,
   )
 
-  return {
+  const lessonsLearned = extractStringArray(getArray(analysis.lessonsLearned, data.lessonsLearned))
+  const result: RCAResult = {
     rootCause: normalizedRootCause,
-    confidenceScore: Number(analysis.confidenceScore ?? data.confidenceScore ?? 85),
+    confidenceScore: safeConfidenceScore(analysis.confidenceScore ?? data.confidenceScore),
     summary,
     evidence,
     timeline,
     businessImpact,
     technicalImpact,
     remediation,
-    verificationSteps,
+    verificationSteps: normalizedVerificationSteps,
     preventiveActions,
     codeFixes,
     configFixes,
     recommendedCommands,
     postIncidentReport,
   }
+  const executiveSummary = getStringFrom(analysis, ['executiveSummary'])
+  const incidentSeverityExplanation = getStringFrom(analysis, [
+    'incidentSeverityExplanation',
+    'severityExplanation',
+  ])
+
+  return {
+    ...result,
+    ...(confidenceAnalysis !== undefined ? { confidenceAnalysis } : {}),
+    ...(kubectlCommands !== undefined ? { kubectlCommands } : {}),
+    ...(executiveSummary.length > 0 ? { executiveSummary } : {}),
+    ...(incidentSeverityExplanation.length > 0 ? { incidentSeverityExplanation } : {}),
+    ...(lessonsLearned.length > 0 ? { lessonsLearned } : {}),
+  }
+}
+
+function safeOptionalConfidence(raw: unknown): number | undefined {
+  if (raw === undefined || raw === null) return undefined
+  return safeConfidenceScore(raw)
 }
 
 function safeSeverity(raw: unknown): 'critical' | 'supporting' | 'contextual' {
@@ -363,6 +414,41 @@ function safeTimeframe(raw: unknown): 'Short Term' | 'Medium Term' | 'Long Term'
     return raw
   }
   return 'Short Term'
+}
+
+function normalizeConfidenceAnalysis(
+  raw: unknown,
+  fallbackScore: unknown,
+): RCAResult['confidenceAnalysis'] {
+  const obj = getObject(raw)
+  if (Object.keys(obj).length === 0) return undefined
+  const conflictingSignals = extractStringArray(obj.conflictingSignals)
+  return {
+    score: safeConfidenceScore(obj.score ?? fallbackScore),
+    reasoning: extractString(obj.reasoning),
+    supportingSignals: extractStringArray(obj.supportingSignals),
+    ...(conflictingSignals.length > 0 ? { conflictingSignals } : {}),
+  }
+}
+
+function normalizeKubectlCommands(raw: unknown): KubectlCommands | undefined {
+  const obj = getObject(raw)
+  if (Object.keys(obj).length === 0) return undefined
+  const commands = {
+    investigation: extractStringArray(obj.investigation),
+    recovery: extractStringArray(obj.recovery),
+    verification: extractStringArray(obj.verification),
+    monitoring: extractStringArray(obj.monitoring),
+  }
+  if (
+    commands.investigation.length === 0 &&
+    commands.recovery.length === 0 &&
+    commands.verification.length === 0 &&
+    commands.monitoring.length === 0
+  ) {
+    return undefined
+  }
+  return commands
 }
 
 // Try to repair common JSON issues from LLM responses

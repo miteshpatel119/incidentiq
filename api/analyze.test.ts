@@ -45,10 +45,8 @@ describe('normalizeOpenRouterResult', () => {
     expect(result.businessImpact.customersAffected).toBe('5000')
     // remediation is now an array of objects, not a string
     expect(result.remediation[0]?.steps.length).toBeGreaterThan(0)
-    // Timeline is extracted from root level now
-    expect(result.timeline).toHaveLength(0)
-    // Default verification steps are used when not at root level
-    expect(result.verificationSteps).toHaveLength(3)
+    expect(result.timeline).toHaveLength(1)
+    expect(result.verificationSteps).toHaveLength(2)
   })
 
   it('handles missing optional fields with defaults', () => {

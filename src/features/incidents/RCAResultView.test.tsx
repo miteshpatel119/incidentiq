@@ -389,7 +389,7 @@ describe('RCAResultView', () => {
     it('renders download button', () => {
       render(<RCAResultView result={mockResult} incidentId="INC-TEST-001" />)
 
-      expect(screen.getByText('Download')).toBeInTheDocument()
+      expect(screen.getByText('Download report')).toBeInTheDocument()
     })
   })
 })

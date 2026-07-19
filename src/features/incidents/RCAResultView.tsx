@@ -1,5 +1,6 @@
 import {
   AlertTriangle,
+  ArrowRight,
   CheckCircle2,
   ChevronDown,
   ChevronRight,
@@ -358,25 +359,6 @@ function ConfigFixCard({ fixes }: { readonly fixes: readonly ConfigFixSuggestion
   )
 }
 
-function ArrowRight({ className }: { readonly className?: string }): JSX.Element {
-  return (
-    <svg
-      className={className}
-      fill="none"
-      height="12"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-      width="12"
-    >
-      <path d="M5 12h14" />
-      <path d="m12 5 7 7-7 7" />
-    </svg>
-  )
-}
-
 function CommandsCard({ commands }: { readonly commands: readonly string[] }): JSX.Element {
   if (commands.length === 0) return <></>
 
@@ -728,7 +710,7 @@ Post-Incident Report:
 ${result.postIncidentReport}
     `.trim()
 
-    const blob = new Blob([content], { type: 'text/plain' })
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -742,9 +724,21 @@ ${result.postIncidentReport}
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-            Root cause analysis
-          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+              Root cause analysis
+            </p>
+            {result.analysisSource === 'mock-fallback' ? (
+              <span className="rounded bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-300">
+                Deterministic fallback
+              </span>
+            ) : null}
+            {result.analysisSource === 'openrouter' ? (
+              <span className="rounded bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
+                Live AI
+              </span>
+            ) : null}
+          </div>
           <h2 className="text-md break-words leading-7 tracking-tight">{result.rootCause}</h2>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{result.summary}</p>
         </div>
@@ -764,7 +758,7 @@ ${result.postIncidentReport}
           </Button>
           <Button onClick={handleDownloadPDF} size="sm" variant="outline">
             <Download className="h-3.5 w-3.5" />
-            Download
+            Download report
           </Button>
         </div>
       </div>
@@ -833,7 +827,9 @@ ${result.postIncidentReport}
       <ConfigFixCard fixes={result.configFixes} />
 
       {/* kubectl Commands */}
-      <KubectlCommandsCard commands={result.kubectlCommands!} />
+      {result.kubectlCommands !== undefined ? (
+        <KubectlCommandsCard commands={result.kubectlCommands} />
+      ) : null}
 
       {/* Commands */}
       <CommandsCard commands={result.recommendedCommands} />

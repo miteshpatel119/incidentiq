@@ -16,6 +16,7 @@ import {
 import { generateMockRCAResult } from '@/features/incidents/mockRCAResults'
 import { mockScenarios } from '@/features/incidents/mockScenarios'
 import type { Incident } from '@/features/incidents/types'
+import { showToast } from '@/lib/toast'
 import {
   INVESTIGATION_STEPS,
   type Investigation,
@@ -180,6 +181,18 @@ export function InvestigationProvider({ children }: { readonly children: ReactNo
     })
   }, [])
 
+  const completeWithMockFallback = useCallback(
+    (incidentId: string, enterpriseData: EnterpriseIncidentProfile, reason: string): void => {
+      const mockResult: RCAResult = {
+        ...generateMockRCAResult(incidentId, enterpriseData),
+        analysisSource: 'mock-fallback',
+      }
+      completeInvestigation(incidentId, mockResult)
+      showToast(`Using deterministic RCA fallback: ${reason}`, 'warning')
+    },
+    [completeInvestigation],
+  )
+
   const startInvestigation = useCallback(
     async (incident: Incident): Promise<void> => {
       abortRef.current?.abort()
@@ -243,9 +256,7 @@ export function InvestigationProvider({ children }: { readonly children: ReactNo
         }
 
         if (!apiAvailable || response === null) {
-          // API unavailable - fall back to deterministic mock RCA
-          const mockResult = generateMockRCAResult(incident.id, enterpriseData)
-          completeInvestigation(incident.id, mockResult)
+          completeWithMockFallback(incident.id, enterpriseData, 'AI service unavailable')
           return
         }
 
@@ -256,26 +267,26 @@ export function InvestigationProvider({ children }: { readonly children: ReactNo
             data?: { readonly rootCauseAnalysis?: RCAResult }
           }
         } catch {
-          const mockResult = generateMockRCAResult(incident.id, enterpriseData)
-          completeInvestigation(incident.id, mockResult)
+          completeWithMockFallback(incident.id, enterpriseData, 'invalid API response')
           return
         }
 
         if (!json.success || !json.data?.rootCauseAnalysis) {
-          // API returned error or malformed response - fall back to mock data
-          const mockResult = generateMockRCAResult(incident.id, enterpriseData)
-          completeInvestigation(incident.id, mockResult)
+          completeWithMockFallback(incident.id, enterpriseData, 'analysis response missing RCA')
           return
         }
 
-        completeInvestigation(incident.id, json.data.rootCauseAnalysis)
+        completeInvestigation(incident.id, {
+          ...json.data.rootCauseAnalysis,
+          analysisSource: 'openrouter',
+        })
       } catch (error: unknown) {
         if (error instanceof DOMException && error.name === 'AbortError') return
         const message = error instanceof Error ? error.message : 'Unknown error during analysis'
         failInvestigation(incident.id, message)
       }
     },
-    [advanceStep, completeInvestigation, failInvestigation],
+    [advanceStep, completeInvestigation, completeWithMockFallback, failInvestigation],
   )
 
   const getInvestigation = useCallback(

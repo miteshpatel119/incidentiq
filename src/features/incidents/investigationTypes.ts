@@ -102,6 +102,7 @@ export interface KubectlCommands {
 }
 
 export interface RCAResult {
+  readonly analysisSource?: 'openrouter' | 'mock-fallback'
   readonly rootCause: string
   readonly confidenceScore: number
   readonly confidenceAnalysis?: ConfidenceAnalysis
