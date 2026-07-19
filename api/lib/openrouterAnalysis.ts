@@ -408,5 +408,13 @@ Analyze this incident and provide a complete root cause analysis with confidence
     throw new Error('No response from OpenRouter')
   }
 
-  return JSON.parse(content) as RCAResult
+  // Extract JSON from potential markdown code blocks
+  const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/)
+  const jsonContent = jsonMatch?.[1] ?? content
+
+  try {
+    return JSON.parse(jsonContent) as RCAResult
+  } catch (parseError) {
+    throw new Error(`Failed to parse OpenRouter response: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`)
+  }
 }
