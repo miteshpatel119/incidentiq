@@ -385,7 +385,7 @@ function sanitizeJsonContent(content: string): string {
   const result: string[] = []
 
   for (let i = 0; i < jsonContent.length; i++) {
-    const char = jsonContent[i]
+    const char = jsonContent.charAt(i)
 
     if (escapeNext) {
       result.push(char)
