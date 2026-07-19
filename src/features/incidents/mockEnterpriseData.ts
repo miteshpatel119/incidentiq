@@ -7,9 +7,9 @@ export const enterpriseIncidentProfiles: readonly EnterpriseIncidentProfile[] =
 
 function looksLikeTimestamp(value: string): boolean {
   if (value.length < 8) return false
-  const hasDateSeparator = value.includes('-') || value.includes('/')
-  const hasTimeSeparator = value.includes(':')
-  if (!hasDateSeparator && !hasTimeSeparator) return false
+  // Check if value matches standard ISO timestamp format (YYYY-MM-DDTHH:MM:SS...)
+  const isoTimestampRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/
+  if (!isoTimestampRegex.test(value)) return false
 
   const parsed = Date.parse(value)
   if (Number.isNaN(parsed)) return false

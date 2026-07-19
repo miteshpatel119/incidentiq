@@ -213,7 +213,7 @@ const server = http.createServer(async (req, res) => {
             Authorization: `Bearer ${apiKey}`,
           },
           body: safeStringify({
-            model: 'openrouter/auto',
+            model: 'google/gemini-2.5-flash-lite',
             response_format: { type: 'json_object' },
             temperature: 0.2,
             max_tokens: 3000,
