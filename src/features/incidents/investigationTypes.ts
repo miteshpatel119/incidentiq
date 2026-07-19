@@ -18,6 +18,7 @@ export interface EvidenceItem {
   readonly description: string
   readonly source: string
   readonly severity: 'critical' | 'supporting' | 'contextual'
+  readonly confidence?: number
 }
 
 export interface CodeFixSuggestion {
@@ -26,6 +27,9 @@ export interface CodeFixSuggestion {
   readonly before: string
   readonly after: string
   readonly explanation: string
+  readonly why?: string
+  readonly expectedImpact?: string
+  readonly risks?: readonly string[]
 }
 
 export interface ConfigFixSuggestion {
@@ -33,6 +37,10 @@ export interface ConfigFixSuggestion {
   readonly before: string
   readonly after: string
   readonly explanation: string
+  readonly rollbackRecommendation?: string
+  readonly expectedImpact?: string
+  readonly rollbackRisk?: string
+  readonly validationSteps?: readonly string[]
 }
 
 export interface TimelineEvent {
@@ -40,11 +48,55 @@ export interface TimelineEvent {
   readonly event: string
   readonly detail: string
   readonly type: 'error' | 'warning' | 'info' | 'change'
+  readonly severity?: 'critical' | 'high' | 'medium' | 'low'
+  readonly category?: 'Change' | 'Deployment' | 'Metric' | 'Application Log' | 'Infrastructure Log' | 'Kubernetes Event' | 'Customer Impact' | 'Recovery'
+}
+
+export interface ConfidenceAnalysis {
+  readonly score: number
+  readonly reasoning: string
+  readonly supportingSignals: readonly string[]
+  readonly conflictingSignals?: readonly string[]
+}
+
+export interface BusinessImpact {
+  readonly customersAffected: string
+  readonly revenueImpact: string
+  readonly slaImpact: string
+  readonly operationalImpact: string
+  readonly downstreamServices: readonly string[]
+  readonly estimatedRecoveryTime: string
+}
+
+export interface TechnicalImpact {
+  readonly affectedService: string
+  readonly infrastructureImpact: string
+  readonly dependencyImpact: string
+  readonly userImpact: string
+}
+
+export interface PrioritizedRemediation {
+  readonly priority: number
+  readonly title: string
+  readonly steps: readonly string[]
+}
+
+export interface PreventiveAction {
+  readonly timeframe: 'Short Term' | 'Medium Term' | 'Long Term'
+  readonly actions: readonly string[]
+}
+
+export interface KubectlCommands {
+  readonly investigation: readonly string[]
+  readonly recovery: readonly string[]
+  readonly verification: readonly string[]
+  readonly monitoring: readonly string[]
 }
 
 export interface RCAResult {
   readonly rootCause: string
   readonly confidenceScore: number
+  readonly confidenceAnalysis?: ConfidenceAnalysis
   readonly summary: string
   readonly evidence: readonly EvidenceItem[]
   readonly timeline: readonly TimelineEvent[]
@@ -55,13 +107,17 @@ export interface RCAResult {
     readonly blastRadius: string
   }
   readonly technicalImpact: string
-  readonly remediation: string
+  readonly remediation: readonly PrioritizedRemediation[]
   readonly verificationSteps: readonly string[]
-  readonly preventiveActions: readonly string[]
+  readonly preventiveActions: readonly PreventiveAction[]
   readonly codeFixes: readonly CodeFixSuggestion[]
   readonly configFixes: readonly ConfigFixSuggestion[]
   readonly recommendedCommands: readonly string[]
+  readonly kubectlCommands?: KubectlCommands
   readonly postIncidentReport: string
+  readonly executiveSummary?: string
+  readonly incidentSeverityExplanation?: string
+  readonly lessonsLearned?: readonly string[]
 }
 
 export interface Investigation {

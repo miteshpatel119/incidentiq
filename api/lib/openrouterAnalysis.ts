@@ -8,47 +8,86 @@ export interface AnalyzeInput {
   readonly enterpriseData: unknown
 }
 
+// Type definitions for the API response
+export interface EvidenceItem {
+  readonly title: string
+  readonly description: string
+  readonly source: string
+  readonly severity: 'critical' | 'supporting' | 'contextual'
+}
+
+export interface TimelineItem {
+  readonly timestamp: string
+  readonly event: string
+  readonly detail: string
+  readonly type: 'error' | 'warning' | 'info' | 'change'
+}
+
+export interface KubectlCommands {
+  readonly investigation: readonly string[]
+  readonly recovery: readonly string[]
+  readonly verification: readonly string[]
+  readonly monitoring: readonly string[]
+}
+
 export interface RCAResult {
   readonly rootCause: string
   readonly confidenceScore: number
+  readonly confidenceAnalysis?: {
+    readonly score: number
+    readonly reasoning: string
+    readonly supportingSignals: readonly string[]
+    readonly conflictingSignals?: readonly string[]
+  }
   readonly summary: string
-  readonly evidence: readonly {
-    readonly title: string
-    readonly description: string
-    readonly source: string
-    readonly severity: 'critical' | 'supporting' | 'contextual'
-  }[]
-  readonly timeline: readonly {
-    readonly timestamp: string
-    readonly event: string
-    readonly detail: string
-    readonly type: 'error' | 'warning' | 'info' | 'change'
-  }[]
+  readonly evidence: readonly EvidenceItem[]
+  readonly timeline: readonly TimelineItem[]
   readonly businessImpact: {
     readonly customersAffected: string
     readonly revenueAtRisk: string
     readonly sla: string
     readonly blastRadius: string
+    readonly operationalImpact?: string
+    readonly downstreamServices?: readonly string[]
+    readonly estimatedRecoveryTime?: string
   }
   readonly technicalImpact: string
-  readonly remediation: string
+  readonly remediation: readonly {
+    readonly priority: number
+    readonly title: string
+    readonly steps: readonly string[]
+  }[]
   readonly verificationSteps: readonly string[]
-  readonly preventiveActions: readonly string[]
+  readonly preventiveActions: readonly {
+    readonly timeframe: 'Short Term' | 'Medium Term' | 'Long Term'
+    readonly actions: readonly string[]
+  }[]
   readonly codeFixes: readonly {
     readonly file: string
     readonly language: string
     readonly before: string
     readonly after: string
     readonly explanation: string
+    readonly why?: string
+    readonly expectedImpact?: string
+    readonly risks?: readonly string[]
   }[]
   readonly configFixes: readonly {
     readonly key: string
     readonly before: string
     readonly after: string
     readonly explanation: string
+    readonly rollbackRecommendation?: string
+    readonly expectedImpact?: string
+    readonly rollbackRisk?: string
+    readonly validationSteps?: readonly string[]
   }[]
   readonly recommendedCommands: readonly string[]
+  readonly kubectlCommands?: KubectlCommands
   readonly postIncidentReport: string
+  readonly executiveSummary?: string
+  readonly incidentSeverityExplanation?: string
+  readonly lessonsLearned?: readonly string[]
 }
 
 const SYSTEM_PROMPT = `You are a senior site reliability engineer conducting a root cause analysis.
@@ -62,11 +101,11 @@ Include the following fields in your response:
 - timeline: array with timestamp, event, detail, type (error/warning/info/change)
 - businessImpact: object with customersAffected, revenueAtRisk, sla, blastRadius
 - technicalImpact: string
-- remediation: string
-- verificationSteps: array of strings
-- preventiveActions: array of strings
-- codeFixes: array with file, language, before, after, explanation (provide code changes to fix the root cause)
-- configFixes: array with key, before, after, explanation (provide configuration rollback suggestions)
+- remediation: array of objects with priority, title, steps (array)
+- verificationSteps: array of strings with checkmarks
+- preventiveActions: array of objects with timeframe (Short Term/Medium Term/Long Term), actions (array)
+- codeFixes: array with file, language, before, after, explanation
+- configFixes: array with key, before, after, explanation
 - recommendedCommands: array of strings
 - postIncidentReport: string
 `
@@ -111,6 +150,11 @@ function extractString(value: unknown): string {
   return ''
 }
 
+function extractStringArray(value: unknown): readonly string[] {
+  if (!Array.isArray(value)) return []
+  return value.map(extractString).filter(s => s.length > 0)
+}
+
 export function normalizeOpenRouterResult(raw: unknown): RCAResult {
   const data = typeof raw === 'object' && raw !== null ? (raw as MaybeObject) : {}
   const analysis = (data.rootCauseAnalysis as MaybeObject | undefined) ?? data
@@ -127,24 +171,36 @@ export function normalizeOpenRouterResult(raw: unknown): RCAResult {
 
   const remediationSteps = Array.isArray(analysis.remediationSteps)
     ? (analysis.remediationSteps as Array<MaybeObject>)
-    : []
+    : Array.isArray(analysis.remediation)
+      ? (analysis.remediation as Array<MaybeObject>)
+      : []
 
-  const evidence = remediationSteps
-    .filter((step) => typeof step.action === 'string' && typeof step.description === 'string')
-    .map((step, index): RCAResult['evidence'][number] => ({
-      title: extractString(step.action),
-      description: extractString(step.description),
-      source: `Remediation step ${index + 1}`,
-      severity: step.urgency === 'Immediate' ? 'critical' : 'supporting',
-    }))
+  // Generate evidence
+  const evidence: EvidenceItem[] = Array.isArray(analysis.evidence)
+    ? (analysis.evidence as Array<MaybeObject>)
+        .filter((e) => typeof e.title === 'string')
+        .map((e) => ({
+          title: extractString(e.title),
+          description: extractString(e.description ?? e.detail ?? ''),
+          source: extractString(e.source ?? 'Analysis'),
+          severity: safeSeverity(e.severity),
+        }))
+    : remediationSteps
+        .filter((step) => typeof step.action === 'string' && typeof step.description === 'string')
+        .map((step, index) => ({
+          title: extractString(step.action),
+          description: extractString(step.description),
+          source: `Remediation step ${index + 1}`,
+          severity: step.urgency === 'Immediate' ? 'critical' : 'supporting',
+        }))
 
+  // Generate timeline
   const timelineEntries = Array.isArray(data.timeline) ? (data.timeline as MaybeObject[]) : []
-
-  const timeline = timelineEntries.map((entry) => {
+  const timeline: TimelineItem[] = timelineEntries.map((entry) => {
     const typeRaw = typeof entry.type === 'string' ? entry.type.trim() : 'info'
-    const type = ['error', 'warning', 'info', 'change'].includes(typeRaw)
-      ? (typeRaw as RCAResult['timeline'][number]['type'])
-      : 'info'
+    const type = (['error', 'warning', 'info', 'change'].includes(typeRaw)
+      ? typeRaw
+      : 'info') as 'error' | 'warning' | 'info' | 'change'
 
     return {
       timestamp: typeof entry.timestamp === 'string' ? entry.timestamp.trim() : '',
@@ -179,34 +235,38 @@ export function normalizeOpenRouterResult(raw: unknown): RCAResult {
     getString(analysis, ['rootCause', 'problemStatement']) || getString(data, ['rootCause']) || ''
   const normalizedRootCause = extractString(rootCause) || ''
   const summary = getString(analysis, ['summary']) || getString(data, ['summary']) || ''
+
+  // Generate remediation
+  const remediation = Array.isArray(analysis.remediation)
+    ? (analysis.remediation as Array<MaybeObject>)
+        .map((r) => ({
+          priority: Number(r.priority ?? 1),
+          title: extractString(r.title ?? 'Action'),
+          steps: extractStringArray(r.steps),
+        }))
+    : [{
+        priority: 1,
+        title: 'Immediate action',
+        steps: ['Investigate the root cause', 'Apply appropriate fix'],
+      }]
+
   const technicalImpact =
     getString(techDetails, ['errorLogs']) ||
     getString(data, ['technicalImpact']) ||
     summary ||
     'Investigation completed.'
-  const confidenceScore = Number(analysis.confidenceScore ?? data.confidenceScore ?? 85)
-
-  const remediation = remediationSteps
-    .map((step) => `${extractString(step.action)}: ${extractString(step.description)}`)
-    .join('\n')
 
   const verificationSteps = Array.isArray(data.verificationSteps)
     ? (data.verificationSteps as readonly string[])
-    : [
-        'Verify service health endpoints return 200 OK',
-        'Confirm error rates return to baseline',
-        'Monitor metrics for 15 minutes',
-      ]
+    : ['✓ Verify service health endpoints return 200 OK', '✓ Confirm error rates return to baseline', '✓ Monitor metrics for 15 minutes']
 
   const preventiveActions = Array.isArray(data.preventiveActions)
-    ? (data.preventiveActions as readonly string[])
-    : ['Add monitoring coverage for the affected service']
-
-  const recommendedCommands = Array.isArray(analysis.recommendedCommands)
-    ? (analysis.recommendedCommands as readonly string[])
-    : Array.isArray(data.recommendedCommands)
-      ? (data.recommendedCommands as readonly string[])
-      : []
+    ? (data.preventiveActions as Array<MaybeObject>)
+        .map((a) => ({
+          timeframe: safeTimeframe(a.timeframe),
+          actions: extractStringArray(a.actions),
+        }))
+    : [{ timeframe: 'Short Term' as const, actions: ['Add monitoring coverage for the affected service'] }]
 
   const rawCodeFixes = Array.isArray(analysis.codeFixes)
     ? (analysis.codeFixes as Array<MaybeObject>)
@@ -216,7 +276,7 @@ export function normalizeOpenRouterResult(raw: unknown): RCAResult {
 
   const codeFixes = rawCodeFixes
     .filter((fix) => typeof fix.file === 'string' && typeof fix.language === 'string')
-    .map((fix): RCAResult['codeFixes'][number] => ({
+    .map((fix) => ({
       file: typeof fix.file === 'string' ? fix.file.trim() : '',
       language: typeof fix.language === 'string' ? fix.language.trim() : '',
       before: typeof fix.before === 'string' ? fix.before.trim() : '',
@@ -232,12 +292,18 @@ export function normalizeOpenRouterResult(raw: unknown): RCAResult {
 
   const configFixes = rawConfigFixes
     .filter((fix) => typeof fix.key === 'string')
-    .map((fix): RCAResult['configFixes'][number] => ({
+    .map((fix) => ({
       key: typeof fix.key === 'string' ? fix.key.trim() : '',
       before: typeof fix.before === 'string' ? fix.before.trim() : '',
       after: typeof fix.after === 'string' ? fix.after.trim() : '',
       explanation: typeof fix.explanation === 'string' ? fix.explanation.trim() : '',
     }))
+
+  const recommendedCommands = Array.isArray(analysis.recommendedCommands)
+    ? (analysis.recommendedCommands as readonly string[])
+    : Array.isArray(data.recommendedCommands)
+      ? (data.recommendedCommands as readonly string[])
+      : []
 
   const postIncidentReport = extractString(
     analysis.postIncidentReport ??
@@ -261,7 +327,7 @@ ${extractString(businessImpact.customersAffected)} affected, ${extractString(bus
 
   return {
     rootCause: normalizedRootCause,
-    confidenceScore,
+    confidenceScore: Number(analysis.confidenceScore ?? data.confidenceScore ?? 85),
     summary,
     evidence,
     timeline,
@@ -275,6 +341,20 @@ ${extractString(businessImpact.customersAffected)} affected, ${extractString(bus
     recommendedCommands,
     postIncidentReport,
   }
+}
+
+function safeSeverity(raw: unknown): 'critical' | 'supporting' | 'contextual' {
+  if (raw === 'critical' || raw === 'supporting' || raw === 'contextual') {
+    return raw
+  }
+  return 'supporting'
+}
+
+function safeTimeframe(raw: unknown): 'Short Term' | 'Medium Term' | 'Long Term' {
+  if (raw === 'Short Term' || raw === 'Medium Term' || raw === 'Long Term') {
+    return raw
+  }
+  return 'Short Term'
 }
 
 export async function analyzeIncident(apiKey: string, input: AnalyzeInput): Promise<RCAResult> {
@@ -298,12 +378,12 @@ export async function analyzeIncident(apiKey: string, input: AnalyzeInput): Prom
 Service: ${input.service}
 Severity: ${input.severity}
 Summary: ${input.summary}
-Alert Signal: ${input.signal}
+Signal: ${input.signal}
 
 Enterprise Data (JSON):
 ${JSON.stringify(trimmedEnterpriseData, null, 2)}
 
-Analyze this incident and provide a complete root cause analysis.`,
+Analyze this incident and provide a complete root cause analysis with confidence analysis, prioritized remediation, preventive actions, code fixes, config fixes, and kubectl commands.`,
         },
       ],
     }),
